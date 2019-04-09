@@ -88,6 +88,15 @@ namespace Unibas.DBIS.VREP.Core
             // For teleporting, each room needs to be created.
             foreach (var room in _rooms) CreateAndAttachTeleporters(room);
         }
+        
+        // new Method to update images at the wall
+
+        public void UpdateRoom(Room roomUpdate)
+        {
+            
+            
+        }
+        
 
 
         private void CreateAndAttachTeleporters(CuboidExhibitionRoom room)

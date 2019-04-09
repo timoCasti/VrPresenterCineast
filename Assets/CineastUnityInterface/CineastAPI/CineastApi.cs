@@ -310,7 +310,7 @@ namespace CineastUnityInterface.CineastAPI
             randomObjectIds = new List<string>();
 
             // Save all Random objectId ( String) into List<String> randomObjecids 
-            for (var f = 0; f < 5; f++) randomObjectIds.Add(randomCineastObjectArray[randomfive[f]].objectId);
+            for (var f = 0; f < num; f++) randomObjectIds.Add(randomCineastObjectArray[randomfive[f]].objectId);
 
             yield return randomObjectIds;
         }
@@ -352,7 +352,7 @@ namespace CineastUnityInterface.CineastAPI
             yield return segmentResult;
             if (earlyBreak) yield break;
 
-            Debug.Log("SegmentsRes:" + segmentResult.content[0].objectId);
+           // Debug.Log("SegmentsRes:" + segmentResult.content[0].objectId);
 
 
             // === METAS ===
@@ -406,12 +406,12 @@ namespace CineastUnityInterface.CineastAPI
 
             yield return objectsResult = JsonUtility.FromJson<ObjectsResult>(objectRequest.text);
 
-            Debug.Log("ObjectRes:" + objectsResult.content[0].path);
+            //Debug.Log("ObjectRes:" + objectsResult.content[0].path);
 
 
 // new trsy
             objectList = CineastUtils.Convert(objectsResult.content);
-            Debug.Log("New Test 474" + objectList[0].id);
+            //Debug.Log("New Test 474" + objectList[0].id);
 
 
             // merge results
@@ -420,7 +420,7 @@ namespace CineastUnityInterface.CineastAPI
                 if (objectList.Contains(mmo))
                     objectList.Find(o => o.Equals(mmo)).Merge(mmo);
 
-            Debug.Log("Object id 487" + objectList[0].id);
+            //Debug.Log("Object id 487" + objectList[0].id);
 
             results = new List<MultimediaObject>(objectList);
 
@@ -439,8 +439,8 @@ namespace CineastUnityInterface.CineastAPI
                 transferList = objectList;
 
 
-            Debug.Log("Object id 513" + objectList[0].id);
-            Debug.Log("Object id 514" + transferList[0].id);
+            //Debug.Log("Object id 513" + objectList[0].id);
+            //Debug.Log("Object id 514" + transferList[0].id);
 
 
             // cleanup
@@ -473,9 +473,22 @@ namespace CineastUnityInterface.CineastAPI
             return objectsResult;
         }
 
+        // String List with ids only
         public List<string> GetRandomObjectIds()
         {
             return randomObjectIds;
+        }
+
+        public List<String> GetMoreLikeThisResultIds(int number)
+        {
+            List<String> re = new List<string>();
+            int a = number;
+            for (int i = 0; i < a; i++)
+            {
+                re.Add(objectList[i].id);
+            }
+
+            return re;
         }
 
         public SimilarResult GetSimilarResult()
@@ -546,11 +559,6 @@ namespace CineastUnityInterface.CineastAPI
         public List<MultimediaObject> GetOriginalResults()
         {
             return new List<MultimediaObject>(results);
-        }
-
-        public Action<List<MultimediaObject>> Getquerycallbackoderso()
-        {
-            return queryFinishedCallback;
         }
 
         public WWW getSimilarrequest()

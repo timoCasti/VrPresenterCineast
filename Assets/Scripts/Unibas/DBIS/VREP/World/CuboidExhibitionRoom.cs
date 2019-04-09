@@ -104,8 +104,20 @@ namespace Unibas.DBIS.VREP.World
         /// </summary>
         public void PopulateWalls()
         {
+            //DeleteOldDisp();
             Walls.ForEach(ew => ew.AttachExhibits());
         }
+        
+        // Delete old Displayals first
+
+        public void DeleteOldDisp()
+        {
+            Walls.ForEach(ew=> ew.resetDisplayals());
+        }
+        
+        
+        
+        
 
         /// <summary>
         ///     Returns the wall for the orientation.
