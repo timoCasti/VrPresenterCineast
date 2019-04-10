@@ -36,56 +36,25 @@ namespace World
 
         public void resetDisplayals()
         {
-            
-            
-            Displayals.Clear();
-            //Debug.Log("Sin Displayals null?  " + Displayals.Count);
-            
-            
-            
-            var prefab = ObjectFactory.GetDisplayalPrefab();
-            foreach (var e in WallData.exhibits)
+
+            // Eventuell sollte man Anchors auch löschen
+
+           
+            int size = Displayals.Count;
+            GameObject del;
+
+            for (int i = 0; i < size; i++)
             {
-               
-                // man darf hier nicht neue Displayals erstellen oder muss alte löschen.
-                var displayal = Instantiate(prefab);
-                displayal.name = "Displayal (" + e.name + ")";
-                displayal.transform.parent = Anchor.transform;
-                var pos = new Vector3(e.position.x, e.position.y, -ExhibitionBuildingSettings.Instance.WallOffset);
-                displayal.transform.localPosition = pos;
-                //displayal.transform.rotation = Quaternion.Euler(ObjectFactory.CalculateRotation(WallData.direction));
-                var rot = Quaternion.Euler(90, 0, 180);
-                displayal.transform.localRotation = rot; // Because prefab is messed up
-
-                // Do Anstatt Displayal erstelle die alte näh?
-                
-                
-                // Do
-
-                /*if(!VREPController.Instance.Settings.SpotsEnabled || !e.light){	
-                  displayal.transform.Find("Directional light").gameObject.SetActive(false);
-                }*/
-
-                var disp = displayal.gameObject.GetComponent<Displayal>();
-                disp.SetExhibitModel(e);
-                disp.OriginalPosition = pos;
-                disp.OriginalRotation = rot;
-                Displayals.Add(disp);
-
-                var image = displayal.transform.Find("Plane").gameObject.AddComponent<ImageLoader>(); // Displayal
-                //ImageLoader image = displayal.AddComponent<ImageLoader>();// ImageDisplayPlane
-                image.ReloadImage(e.GetURLEncodedPath());
-                displayal.transform.localScale = ScalingUtility.convertMeters2PlaneScaleSize(e.size.x, e.size.y);
-
-                if (e.audio != null)
-                {
-                    Debug.Log("added audio to display object");
-                    var closenessDetector = displayal.AddComponent<ClosenessDetector>();
-                    closenessDetector.url = e.audio;
-                }
+                del = GameObject.Find("Displayal (" + i + ")");
+                GameObject.Destroy(del);
+                del = GameObject.Find("Anchor (" + i + ")");
+                GameObject.Destroy(del);
             }
-          
+       
+
         }
+
+        
         
 
         public void AttachExhibits()
@@ -116,6 +85,9 @@ namespace World
                 disp.SetExhibitModel(e);
                 disp.OriginalPosition = pos;
                 disp.OriginalRotation = rot;
+                
+                // Make the Boxcollider trigger in Displayal
+                disp.GetComponent<BoxCollider>().isTrigger = true;
                 Displayals.Add(disp);
 
                 var image = displayal.transform.Find("Plane").gameObject.AddComponent<ImageLoader>(); // Displayal

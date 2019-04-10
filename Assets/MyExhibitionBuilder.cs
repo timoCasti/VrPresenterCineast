@@ -62,49 +62,32 @@ public class MyExhibitionBuilder : MonoBehaviour
     }
 
 
-    public static IEnumerator getMorelikeThisOne(int exhibitNumber, CineastApi api)
+    public static IEnumerator getMorelikeThisOne(int exhibitNumber)
     {
-        Debug.Log( " Exhibitnumber:  "+ exhibitNumber);
-
+     
         CineastApi myApi = CineastApi.FindObjectOfType<CineastApi>();
         Action<List<MultimediaObject>> handlernew =
             new Action<List<MultimediaObject>>(delegate(List<MultimediaObject> list) { });
-        Debug.Log(" Do myEx 72:  "+ randomIds[exhibitNumber]);
-        //Debug.Log(api.isActiveAndEnabled);
-        Debug.Log(myApi.isActiveAndEnabled);
-        Debug.Log("myapi  "+ myApi.name);
+     
         
         // There should be searched for segmentIds instead ob fixed Objectids _1 hardcoding unnecessary
         myApi.RequestMoreLikeThisAndThen(QueryFactory.buildMoreLikeThisQuery(randomIds[exhibitNumber]+"_1"),handlernew); 
         yield return new WaitUntil(myApi.HasFinished);
-        //List<MultimediaObject> localObjectList = myApi.GetMultimediaObjects();
-        //myApi.getObjectsResult().content[0].objectId
+        // has finished doesnt work since api is called severaltimes
+        yield return new WaitForSeconds(2);
+        
         similarIds = myApi.GetMoreLikeThisResultIds(5);
-        Debug.Log("ID after Query :      " + similarIds[0]);
-        
-        
-        //Debug.Log("Can i change my room? from here  " + myexhibitionManager.GetRoomByIndex(0).RoomData.exhibits[0].id);
-        
-        // update images
-        //myexhibitionManager.GetRoomByIndex(0).RoomData.exhibits = getExhibits(5, similarIds);
-        
-        
-        
-        //Debug.Log("Can i change my room?  to this" + myexhibitionManager.GetRoomByIndex(0).RoomData.exhibits[0].id);
-        
-        //myexhibitionManager.GetRoomByIndex(0).Walls[0].RestoreDisplayals();
-        //myexhibitionManager.GetRoomByIndex(0).Walls[1].AttachExhibits();
 
-        //myexhibitionManager.GetRoomByIndex(0).Walls[0].WallData.exhibits = getExhibits(5, similarIds);
-
-        Debug.Log("did i change now 101   " + myexhibitionManager.GetRoomByIndex(0).Walls[0].WallData.exhibits.Length);
-
-        //myexhibitionManager.GetRoomByIndex(0).Walls[0].WallData.
-        
+        randomIds = similarIds;
+     
         myexhibitionManager.GetRoomByIndex(0).Walls[0].WallData.exhibits = getExhibits(5, similarIds);
         
         //myexhibitionManager.GetRoomByIndex(0).PopulateWalls();
-        myexhibitionManager.GetRoomByIndex(0).DeleteOldDisp();
+        myexhibitionManager.GetRoomByIndex(0).DeleteOldandUpdate();
+        
+        //makeCollidersTriggers(randomIds.Count);
+        
+        
         
         
     
@@ -160,7 +143,8 @@ public class MyExhibitionBuilder : MonoBehaviour
 
     
         api.RequestIds(numb,handlernew);
-        yield return new WaitForSecondsRealtime(2);
+        //yield return new WaitForSecondsRealtime(2);
+        yield return new WaitUntil(api.HasFinished);
         randomIds = api.GetRandomObjectIds();
 
         String url = api.GetRandomObjectIds()[0];
@@ -172,36 +156,13 @@ public class MyExhibitionBuilder : MonoBehaviour
 
         createExhibition(numb);
         
-        yield return new WaitForSeconds(2);
+        
+        yield return new WaitForSeconds(1);
         
         // for some reason I cant make the Boxcolliders as Trigger in creation, therefor its done here
-        makeCollidersTriggers(randomIds.Count);
+        //makeCollidersTriggers(randomIds.Count);
         
-        //String a = myexhibitionManager.GetRoomByIndex(0).Walls[0].Displayals[0].id;
-        //Debug.Log("DO DO DO   " + a);
-
-        
-        //String b = myexhibitionManager.GetRoomByIndex(0).Walls[0].Displayals[0].GetComponent<Plane>().normal.ToString(); //GetComponent<MeshCollider>().isTrigger;
-
-        //String b = myexhibitionManager.GetRoomByIndex(0).Walls[0].Displayals[0].GetExhibit().path;
-
-        //Debug.Log("DO DO  path" + b);
-
-        //Collider lookForaCollider = myexhibitionManager.GetRoomByIndex(0).Walls[0].Displayals[0].GetComponent<BoxCollider>();
-        //String Collidername=lookForaCollider.name;
-        
-        //Debug.Log("is trigger?" +lookForaCollider.isTrigger);
-
-        //lookForaCollider.isTrigger = true;
-
-        //Debug.Log(" Collider tag  " +lookForaCollider.tag);
-        
-        //Debug.Log("is trigger now?  " +lookForaCollider.isTrigger);
-        
-        //lookForaCollider.
-        
-        //Debug.Log(" This is the collider name  " + Collidername);
-        //OnTriggerEnter(lookForaCollider);
+     
         
 
 
@@ -209,14 +170,9 @@ public class MyExhibitionBuilder : MonoBehaviour
         // set loaded image
     }
     
-    //might be useful
-    /*private void OnTriggerEnter(Collider collider)
-    {
-        if (!useTag || useTag && collider.gameObject.tag == tagFilter)
-            Destroy(collider.gameObject.transform.root.gameObject);
-    }*/
 
-    private void makeCollidersTriggers(int amountColliders)
+// method to make all Boxcolliders triggers
+    public static void makeCollidersTriggers(int amountColliders)
     {
         for (int i = 0; i < amountColliders; i++)
         {

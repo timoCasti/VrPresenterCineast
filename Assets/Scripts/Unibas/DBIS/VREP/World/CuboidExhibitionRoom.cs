@@ -110,9 +110,10 @@ namespace Unibas.DBIS.VREP.World
         
         // Delete old Displayals first
 
-        public void DeleteOldDisp()
+        public void DeleteOldandUpdate()
         {
             Walls.ForEach(ew=> ew.resetDisplayals());
+            Walls.ForEach(ew => ew.AttachExhibits());
         }
         
         

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using CineastUnityInterface.CineastAPI;
 using DefaultNamespace.VREM.Model;
 using Unibas.DBIS.DynamicModelling;
@@ -20,6 +22,7 @@ public class Displayal : MonoBehaviour
     public Vector3 OriginalPosition;
     public Quaternion OriginalRotation;
 
+    private Boolean triggerWait=true;
 
     public void RestorePosition()
     {
@@ -62,24 +65,8 @@ public class Displayal : MonoBehaviour
         
         // create new Boxcollider
 
-        /*var magicOffset = 0.17f;
-        var anch = ModelFactory.CreateCuboid(_anchor);
-        var col = anch.AddComponent<BoxCollider>();
-       
-        col.center = new Vector3(_anchor.Width / 2, _anchor.Height / 2, _anchor.Depth/2);
-        col.size = new Vector3(_anchor.Width, _anchor.Height, _anchor.Depth);
-        anch.name = "Anchor (" + id + ")";
-        anch.transform.parent = transform.parent;
-        anch.transform.localPosition = new Vector3(_exhibitModel.position.x-_anchor.Width/2, _exhibitModel.position.y-(_exhibitModel.size.y/2+magicOffset), -_anchor.Depth); //0.2 is magic number for frame
-        anch.transform.localRotation = Quaternion.Euler(Vector3.zero);
-
-        col.isTrigger = true; // funktioniert nid
-        */
-
-        
-        //if (VREPController.Instance.Settings.PlaygroundEnabled)
-        {
-            var magicOffset = 0.17f;
+     
+            /*var magicOffset = 0.17f;
             //var t = gameObject.AddComponent<Throwable>();
             //t.attachmentFlags = Hand.AttachmentFlags.VelocityMovement | Hand.AttachmentFlags.TurnOffGravity;
                 //Hand.AttachmentFlags.VelocityMovement  Hand.AttachmentFlags.TurnOffGravity;
@@ -93,42 +80,39 @@ public class Displayal : MonoBehaviour
             anch.transform.parent = transform.parent;
             anch.transform.localPosition = new Vector3(_exhibitModel.position.x-_anchor.Width/2, _exhibitModel.position.y-(_exhibitModel.size.y/2+magicOffset), -_anchor.Depth); //0.2 is magic number for frame
             anch.transform.localRotation = Quaternion.Euler(Vector3.zero);
-        }
+        */
+
+            // test for is trigger problem
+            //anch.GetComponent<BoxCollider>(BoxCollider)
     }
 
     private void OnTriggerEnter(Collider other)
     {
+      
         
-        Debug.Log("TAG in Displayal is actually gameobjectname   " + other.gameObject.name);
-        Debug.Log("This is the tag we are looking for    " + other.tag);
-        
-        if (other.tag == "Player")
-        {
-            Debug.Log("other.tag==Player");
-            //setTestingBool();
-        }
-
+        if(triggerWait == (true&&other.gameObject.name=="HeadCollider"))
         // We use the HeadCollider for now because thats the trigger when "Driving" through the img
-        if (other.gameObject.name == "HeadCollider")
+      
         {
-            Debug.Log("Here we gotta call our function");
+            triggerWait = false;
+            
             int x = 0;
 
+            // parsing string to int since the id is a number
             Int32.TryParse(this.id, out x);
-            CineastApi api = GetComponent<CineastApi>();
-            StartCoroutine(MyExhibitionBuilder.getMorelikeThisOne(x,api));
-            //String a =other.GetComponent<BoxCollider>().gameObject.name;
-            Debug.Log("das do  " + this.id); // this id returns "Exhibit 0" kame also ufrüefe mitere methode us MyExhibition..
-            // Mach zerscht e Methode wo direkt mit dem trigger neue Bilder ladet..
+            StartCoroutine(MyExhibitionBuilder.getMorelikeThisOne(x));
+          
+            WaitHelper(3);
+            
+
         }
         
-        if (other.tag == "HeadCollider")
-        {
-            Debug.Log("Wieso ? other.tag == HeadCollider");
-        }
+    }
 
-       
-        //throw new System.NotImplementedException();
+    private IEnumerator WaitHelper(int seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        triggerWait = true;
     }
 
 

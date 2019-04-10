@@ -312,6 +312,8 @@ namespace CineastUnityInterface.CineastAPI
             // Save all Random objectId ( String) into List<String> randomObjecids 
             for (var f = 0; f < num; f++) randomObjectIds.Add(randomCineastObjectArray[randomfive[f]].objectId);
 
+            
+            finished = true;
             yield return randomObjectIds;
         }
 
