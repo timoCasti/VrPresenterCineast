@@ -26,7 +26,15 @@ public class MyExhibitionBuilder : MonoBehaviour
     
     // Triggerlist
     private List<Boolean> triggerList;
+    
+    public static Boolean triggerWait;
 
+    private static Boolean isFinished;
+
+    public static Displayal dis;
+
+    public static float TimeForTrigger;
+    
 
    
     // Use this for initialization
@@ -64,7 +72,15 @@ public class MyExhibitionBuilder : MonoBehaviour
 
     public static IEnumerator getMorelikeThisOne(int exhibitNumber)
     {
-     
+
+        
+
+        //try something
+        //dis = GameObject.FindObjectOfType<Displayal>();
+        //dis.WaitForRetrigger(2);
+        
+        //isFinished = false;
+        
         CineastApi myApi = CineastApi.FindObjectOfType<CineastApi>();
         Action<List<MultimediaObject>> handlernew =
             new Action<List<MultimediaObject>>(delegate(List<MultimediaObject> list) { });
@@ -72,9 +88,13 @@ public class MyExhibitionBuilder : MonoBehaviour
         
         // There should be searched for segmentIds instead ob fixed Objectids _1 hardcoding unnecessary
         myApi.RequestMoreLikeThisAndThen(QueryFactory.buildMoreLikeThisQuery(randomIds[exhibitNumber]+"_1"),handlernew); 
+        
         yield return new WaitUntil(myApi.HasFinished);
+        
+       
+        
         // has finished doesnt work since api is called severaltimes
-        yield return new WaitForSeconds(2);
+        //yield return new WaitForSeconds(2.5f);
         
         similarIds = myApi.GetMoreLikeThisResultIds(5);
 
@@ -82,22 +102,41 @@ public class MyExhibitionBuilder : MonoBehaviour
      
         myexhibitionManager.GetRoomByIndex(0).Walls[0].WallData.exhibits = getExhibits(5, similarIds);
         
-        //myexhibitionManager.GetRoomByIndex(0).PopulateWalls();
         myexhibitionManager.GetRoomByIndex(0).DeleteOldandUpdate();
         
-        //makeCollidersTriggers(randomIds.Count);
+        triggerWait = false;
+
+        Debug.Log("Diräkt nocher");
+        yield return new WaitForSeconds(2);
+        Debug.Log("Diräkt nocher und den no 2");
+        
+        
+        yield return WaitForRetrigger();
+
         
         
         
-        
-    
-        
-        
-        
-        //yield return new WaitForSeconds(1);
+
+        isFinished = true;
+
     }
 
-    public CineastApi getApi()
+    public static void helpmyhelper()
+    {
+        Debug.Log("1 helphelp");
+       // StartCoroutine(WaitForRetrigger());
+        
+       // StartCoroutine(WaitForRetrigger());
+        Debug.Log(" 2  helphelp");
+    }
+    public static IEnumerator WaitForRetrigger()
+    {
+        Debug.Log("At least");
+        yield return new WaitForSeconds(2);
+        triggerWait = true;
+    } 
+
+    public CineastApi GetApi()
     {
         return GetComponent<CineastApi>();
     }
@@ -155,15 +194,19 @@ public class MyExhibitionBuilder : MonoBehaviour
         //Debug.Log("getConeastImg" + randomIds[0]);
 
         createExhibition(numb);
-        
-        
-        yield return new WaitForSeconds(1);
-        
+
+        triggerWait = true;
+
+        TimeForTrigger = Time.time;
+
+
+        //yield return new WaitForSeconds(1);
+
         // for some reason I cant make the Boxcolliders as Trigger in creation, therefor its done here
         //makeCollidersTriggers(randomIds.Count);
-        
-     
-        
+
+
+
 
 
         //yield return true;
@@ -287,6 +330,11 @@ public class MyExhibitionBuilder : MonoBehaviour
 
 
         return re;
+    }
+    
+    public Boolean GetisFinished()
+    {
+        return isFinished;
     }
     
     

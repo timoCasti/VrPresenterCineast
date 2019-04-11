@@ -40,16 +40,14 @@ namespace CineastUnityInterface.CineastAPI
         private void Awake()
         {
             filterEngine = new FilterEngine();
-            if (CineastConfiguration.HasConfig())
-            {
+            if (CineastConfiguration.HasConfig()) {
                 var config = CineastConfiguration.Load();
                 if (!config.IsEmpty())
                     CineastUtils.Configuration = config;
                 else
                     CineastUtils.Configuration = CineastConfiguration.GetDefault();
             }
-            else
-            {
+            else {
                 CineastConfiguration.StoreEmpty();
             }
         }
@@ -60,7 +58,7 @@ namespace CineastUnityInterface.CineastAPI
             StartCoroutine(ExecuteQueryMoreLikeThis(query));
         }
 
-        public void RequestIds(int number,Action<List<MultimediaObject>> handler)
+        public void RequestIds(int number, Action<List<MultimediaObject>> handler)
         {
             queryFinishedCallback = handler;
             StartCoroutine(ExecuteRandomId(number));
@@ -82,6 +80,7 @@ namespace CineastUnityInterface.CineastAPI
 
         private IEnumerator ExecuteMultiQuery(SimilarQuery query, CategoryRatio ratio)
         {
+            finished = false;
             // === SIMILAR ===
             // Initial SimilarQuery
 
@@ -96,16 +95,14 @@ namespace CineastUnityInterface.CineastAPI
 
 
             // Check if empty
-            if (similarResult.IsEmpty())
-            {
+            if (similarResult.IsEmpty()) {
                 earlyBreak = true;
                 yield break; // Stop and 
             }
 
             var tempResult = CineastUtils.ExtractContentObjects(similarResult);
 
-            if (ratio != null && similarResult.results.Length > 1)
-            {
+            if (ratio != null && similarResult.results.Length > 1) {
                 foreach (var ro in similarResult.results) ContentObject.ArrayToStrig(ro.content);
 
                 var merger = new ResultMerger();
@@ -181,6 +178,7 @@ namespace CineastUnityInterface.CineastAPI
 
         private IEnumerator ExecuteQuery(SimilarQuery query)
         {
+            finished = false;
             // === SIMILAR ===
             // Initial SimilarQuery
             yield return similarRequest =
@@ -194,8 +192,7 @@ namespace CineastUnityInterface.CineastAPI
 
 
             // Check if empty
-            if (similarResult.IsEmpty())
-            {
+            if (similarResult.IsEmpty()) {
                 earlyBreak = true;
                 yield break; // Stop and 
             }
@@ -272,10 +269,10 @@ namespace CineastUnityInterface.CineastAPI
 
         private IEnumerator ExecuteRandomId(int number)
         {
+            finished = false;
             // Number cant be higher than 50
             int num = number;
-            if (num > 50)
-            {
+            if (num > 50) {
                 num = 5;
             }
             // == RandomIds ==
@@ -297,8 +294,7 @@ namespace CineastUnityInterface.CineastAPI
             var random = new Random();
             var len = randomCineastObjectArray.Length;
             var randomfive = new List<int>();
-            for (var k = 0; k < number; k++)
-            {
+            for (var k = 0; k < number; k++) {
                 var ran = random.Next(len);
                 while (randomfive.Contains(ran)) ran = random.Next(len);
 
@@ -312,7 +308,7 @@ namespace CineastUnityInterface.CineastAPI
             // Save all Random objectId ( String) into List<String> randomObjecids 
             for (var f = 0; f < num; f++) randomObjectIds.Add(randomCineastObjectArray[randomfive[f]].objectId);
 
-            
+
             finished = true;
             yield return randomObjectIds;
         }
@@ -321,6 +317,10 @@ namespace CineastUnityInterface.CineastAPI
 
         private IEnumerator ExecuteQueryMoreLikeThis(MoreLikeThisQuery query)
         {
+            // Since api is used several times it has to be set false on call
+            finished = false;
+
+
             // === SIMILAR ===
             // Initial SimilarQuery
             yield return similarRequest =
@@ -337,8 +337,7 @@ namespace CineastUnityInterface.CineastAPI
             //Debug.Log(similarResult.results[0].content[2].value);
 
             // Check if empty
-            if (similarResult.IsEmpty())
-            {
+            if (similarResult.IsEmpty()) {
                 earlyBreak = true;
                 yield break; // Stop and 
             }
@@ -354,53 +353,6 @@ namespace CineastUnityInterface.CineastAPI
             yield return segmentResult;
             if (earlyBreak) yield break;
 
-           // Debug.Log("SegmentsRes:" + segmentResult.content[0].objectId);
-
-
-            // === METAS ===
-            /*yield return metaRequest =
-                CineastUtils.BuildMetadataRequest(CineastUtils.Configuration.FindMetadataUrl(),
-                    CineastUtils.ExtractIdArray(segmentResult.content));
-           earlyBreak = !Parse(metaRequest.text, out metaResult);
-            yield return metaResult;
-            if (earlyBreak) {
-                yield break;
-            }*/
-
-            //Debug.Log(metaResult.content.Length);
-            // Debug.Log("MetaRes:" + metaResult.content[0].objectId);
-
-
-            // meta->mmo
-
-            //objectList = CineastUtils.Convert(metaResult.content);
-
-            /*
-            object list List<MultimediaObject>
-            einzigs anderi List<multimediaobject> wär result
-            
-            was gits sunscht was isch de unterschied?
-            
-            CineasObject kame zu MMO s macher mit utils.Convertto... gits das?
-            
-             Mit probiere Objectresult.conten == cineastobject zu objectlist mache... nid für hanzi arrays gmacht
-             * */
-
-
-            //tryin objeclist without meta
-
-
-            //objectList = segmentResult.content;
-
-
-            // === OBJECTS ===
-            /*
-            yield return objectRequest =
-                CineastUtils.BuildObjectsRequest(CineastUtils.Configuration.FindObjectsUrl(),
-                    CineastUtils.ExtractIdArray(objectList.ToArray()));
-
-            yield return objectsResult = JsonUtility.FromJson<ObjectsResult>(objectRequest.text);
-            */
 
             yield return objectRequest =
                 CineastUtils.BuildObjectsRequest(CineastUtils.Configuration.FindObjectsUrl(),
@@ -461,8 +413,7 @@ namespace CineastUnityInterface.CineastAPI
         {
             var ret = "[";
 
-            foreach (var mmo in list)
-            {
+            foreach (var mmo in list) {
                 ret += JsonUtility.ToJson(mmo);
                 ret += ",";
             }
@@ -485,8 +436,7 @@ namespace CineastUnityInterface.CineastAPI
         {
             List<String> re = new List<string>();
             int a = number;
-            for (int i = 0; i < a; i++)
-            {
+            for (int i = 0; i < a; i++) {
                 re.Add(objectList[i].id);
             }
 
@@ -538,8 +488,7 @@ namespace CineastUnityInterface.CineastAPI
          */
         private static bool Parse<T>(string toParse, out T result)
         {
-            if (HasHTTPErrorOccurred(toParse))
-            {
+            if (HasHTTPErrorOccurred(toParse)) {
                 result = default(T);
                 return false;
             }

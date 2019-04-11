@@ -7,6 +7,7 @@ using Unibas.DBIS.DynamicModelling;
 using Unibas.DBIS.DynamicModelling.Models;
 using UnityEngine;
 using Valve.VR.InteractionSystem;
+using World;
 
 public class Displayal : MonoBehaviour
 {
@@ -22,7 +23,7 @@ public class Displayal : MonoBehaviour
     public Vector3 OriginalPosition;
     public Quaternion OriginalRotation;
 
-    private Boolean triggerWait=true;
+    
 
     public void RestorePosition()
     {
@@ -38,81 +39,77 @@ public class Displayal : MonoBehaviour
         id = _exhibitModel.id;
         name = "Displayal (" + id + ")";
         var tp = transform.Find("TitlePlaquette");
-        if (tp != null)
-        {
+        if (tp != null) {
             if (string.IsNullOrEmpty(exhibit.name))
                 tp.gameObject.SetActive(false);
             else
                 tp.GetComponent<Plaquette>().text.text = exhibit.name;
         }
-        else
-        {
+        else {
             Debug.LogError("no tp");
         }
 
         var dp = transform.Find("DescriptionPlaquette");
-        if (dp != null)
-        {
+        if (dp != null) {
             if (string.IsNullOrEmpty(exhibit.description))
                 dp.gameObject.SetActive(false);
             else
                 dp.GetComponent<Plaquette>().text.text = exhibit.description;
         }
-        else
-        {
+        else {
             Debug.LogError("no dp");
         }
-        
+
         // create new Boxcollider
 
-     
-            /*var magicOffset = 0.17f;
-            //var t = gameObject.AddComponent<Throwable>();
-            //t.attachmentFlags = Hand.AttachmentFlags.VelocityMovement | Hand.AttachmentFlags.TurnOffGravity;
-                //Hand.AttachmentFlags.VelocityMovement  Hand.AttachmentFlags.TurnOffGravity;
-            //t.releaseVelocityStyle = ReleaseStyle.AdvancedEstimation;
-            var anch = ModelFactory.CreateCuboid(_anchor);
-            var col = anch.AddComponent<BoxCollider>();
-            col.center = new Vector3(_anchor.Width / 2, _anchor.Height / 2, _anchor.Depth/2);
-            col.size = new Vector3(_anchor.Width, _anchor.Height, _anchor.Depth);
-            col.isTrigger = true;
-            anch.name = "Anchor (" + id + ")";
-            anch.transform.parent = transform.parent;
-            anch.transform.localPosition = new Vector3(_exhibitModel.position.x-_anchor.Width/2, _exhibitModel.position.y-(_exhibitModel.size.y/2+magicOffset), -_anchor.Depth); //0.2 is magic number for frame
-            anch.transform.localRotation = Quaternion.Euler(Vector3.zero);
-        */
 
-            // test for is trigger problem
-            //anch.GetComponent<BoxCollider>(BoxCollider)
+        /*var magicOffset = 0.17f;
+        //var t = gameObject.AddComponent<Throwable>();
+        //t.attachmentFlags = Hand.AttachmentFlags.VelocityMovement | Hand.AttachmentFlags.TurnOffGravity;
+            //Hand.AttachmentFlags.VelocityMovement  Hand.AttachmentFlags.TurnOffGravity;
+        //t.releaseVelocityStyle = ReleaseStyle.AdvancedEstimation;
+        var anch = ModelFactory.CreateCuboid(_anchor);
+        var col = anch.AddComponent<BoxCollider>();
+        col.center = new Vector3(_anchor.Width / 2, _anchor.Height / 2, _anchor.Depth/2);
+        col.size = new Vector3(_anchor.Width, _anchor.Height, _anchor.Depth);
+        col.isTrigger = true;
+        anch.name = "Anchor (" + id + ")";
+        anch.transform.parent = transform.parent;
+        anch.transform.localPosition = new Vector3(_exhibitModel.position.x-_anchor.Width/2, _exhibitModel.position.y-(_exhibitModel.size.y/2+magicOffset), -_anchor.Depth); //0.2 is magic number for frame
+        anch.transform.localRotation = Quaternion.Euler(Vector3.zero);
+    */
+
+        // test for is trigger problem
+        //anch.GetComponent<BoxCollider>(BoxCollider)
     }
 
     private void OnTriggerEnter(Collider other)
     {
-      
-        
-        if(triggerWait == (true&&other.gameObject.name=="HeadCollider"))
         // We use the HeadCollider for now because thats the trigger when "Driving" through the img
-      
-        {
-            triggerWait = false;
+       
+        
+        if (other.gameObject.name == "HeadCollider") {
             
-            int x = 0;
-
-            // parsing string to int since the id is a number
-            Int32.TryParse(this.id, out x);
-            StartCoroutine(MyExhibitionBuilder.getMorelikeThisOne(x));
-          
-            WaitHelper(3);
+                StartCoroutine(WaitForRetrigger(3));
             
 
         }
-        
     }
+   
 
-    private IEnumerator WaitHelper(int seconds)
+    public IEnumerator WaitForRetrigger(int seconds)
     {
-        yield return new WaitForSeconds(seconds);
-        triggerWait = true;
+     
+        if (!((Time.time - MyExhibitionBuilder.TimeForTrigger) > seconds)) yield break;
+
+        MyExhibitionBuilder.TimeForTrigger = Time.time;
+ 
+        // parsing string to int since the id is a number
+        int x = 0;
+        Int32.TryParse(this.id, out x);
+        
+        StartCoroutine(MyExhibitionBuilder.getMorelikeThisOne(x));
+
     }
 
 

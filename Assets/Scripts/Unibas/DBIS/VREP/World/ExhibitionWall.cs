@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using DefaultNamespace;
 using Unibas.DBIS.DynamicModelling.Models;
 using UnityEngine;
@@ -11,6 +12,7 @@ namespace World
   public class ExhibitionWall : MonoBehaviour
     {
         public List<Displayal> Displayals = new List<Displayal>();
+        public Displayal timeDisplayal;
 
         /// <summary>
         ///     The wall's data
@@ -52,6 +54,12 @@ namespace World
             }
        
 
+        }
+
+        public IEnumerator WaitForTrigger()
+        {
+            yield return new WaitForSeconds(3);
+            MyExhibitionBuilder.triggerWait = true;
         }
 
         
