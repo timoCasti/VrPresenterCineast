@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/InGamePaint/Scenes/VrPlaneCanvas.unity
+  isLoaded: 1
+  isActive: 1
