@@ -1,9 +1,12 @@
-﻿using System.Collections;
-using UnityEditor;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using UnityEngine;
-#if UNITY_2017_2_OR_NEWER
-using UnityEngine.XR;
 
+#if UNITY_2017_2_OR_NEWER
+    using UnityEngine.XR;
 #else
 using XRSettings = UnityEngine.VR.VRSettings;
 using XRDevice = UnityEngine.VR.VRDevice;
@@ -14,14 +17,17 @@ namespace Valve.VR
     public class SteamVR_Behaviour : MonoBehaviour
     {
         private const string openVRDeviceName = "OpenVR";
+        public static bool forcingInitialization = false;
 
         private static SteamVR_Behaviour _instance;
-
         public static SteamVR_Behaviour instance
         {
             get
             {
-                if (_instance == null) Initialize();
+                if (_instance == null)
+                {
+                    Initialize(false);
+                }
 
                 return _instance;
             }
@@ -29,31 +35,34 @@ namespace Valve.VR
 
         public bool initializeSteamVROnAwake = true;
 
-        [HideInInspector] public bool forcingInitialization;
+        public bool doNotDestroy = true;
 
-        [HideInInspector] public SteamVR_Render steamvr_render;
+        [HideInInspector]
+        public SteamVR_Render steamvr_render;
 
 
-        private static bool initializing;
-
-        public static void Initialize()
+        private static bool initializing = false;
+        public static void Initialize(bool forceUnityVRToOpenVR = false)
         {
             if (_instance == null && initializing == false)
             {
                 initializing = true;
                 GameObject steamVRObject = null;
 
-                var renderInstance = FindObjectOfType<SteamVR_Render>();
+                if (forceUnityVRToOpenVR)
+                    forcingInitialization = true;
+
+                SteamVR_Render renderInstance = GameObject.FindObjectOfType<SteamVR_Render>();
                 if (renderInstance != null)
                     steamVRObject = renderInstance.gameObject;
 
-                var behaviourInstance = FindObjectOfType<SteamVR_Behaviour>();
+                SteamVR_Behaviour behaviourInstance = GameObject.FindObjectOfType<SteamVR_Behaviour>();
                 if (behaviourInstance != null)
                     steamVRObject = behaviourInstance.gameObject;
 
                 if (steamVRObject == null)
                 {
-                    var objectInstance = new GameObject("[SteamVR]");
+                    GameObject objectInstance = new GameObject("[SteamVR]");
                     _instance = objectInstance.AddComponent<SteamVR_Behaviour>();
                     _instance.steamvr_render = objectInstance.AddComponent<SteamVR_Render>();
                 }
@@ -64,9 +73,7 @@ namespace Valve.VR
                         behaviourInstance = steamVRObject.AddComponent<SteamVR_Behaviour>();
 
                     if (renderInstance != null)
-                    {
                         behaviourInstance.steamvr_render = renderInstance;
-                    }
                     else
                     {
                         behaviourInstance.steamvr_render = steamVRObject.GetComponent<SteamVR_Render>();
@@ -77,15 +84,16 @@ namespace Valve.VR
                     _instance = behaviourInstance;
                 }
 
+                if (behaviourInstance != null && behaviourInstance.doNotDestroy)
+                    GameObject.DontDestroyOnLoad(behaviourInstance.transform.root.gameObject);
+
                 initializing = false;
             }
         }
 
         protected void Awake()
         {
-            SteamVR_Input.PreInitialize();
-
-            if (initializeSteamVROnAwake)
+            if (initializeSteamVROnAwake && forcingInitialization == false)
                 InitializeSteamVR();
         }
 
@@ -133,7 +141,7 @@ namespace Valve.VR
             }
             else
             {
-                Debug.LogError("Tried to async load: " + openVRDeviceName + ". Loaded: " + deviceName);
+                Debug.LogError("<b>[SteamVR]</b> Tried to async load: " + openVRDeviceName + ". Loaded: " + deviceName);
                 loadedOpenVRDeviceSuccess = true; //try anyway
             }
         }
@@ -157,18 +165,16 @@ namespace Valve.VR
 #if UNITY_2017_1_OR_NEWER
         protected void OnEnable()
         {
-            Application.onBeforeRender += OnBeforeRender;
+		    Application.onBeforeRender += OnBeforeRender;
             SteamVR_Events.System(EVREventType.VREvent_Quit).Listen(OnQuit);
         }
-
         protected void OnDisable()
         {
-            Application.onBeforeRender -= OnBeforeRender;
+		    Application.onBeforeRender -= OnBeforeRender;
             SteamVR_Events.System(EVREventType.VREvent_Quit).Remove(OnQuit);
         }
-
-        protected void OnBeforeRender()
-        {
+	    protected void OnBeforeRender() 
+        { 
             PreCull();
         }
 #else
@@ -192,7 +198,6 @@ namespace Valve.VR
 #endif
 
         protected static int lastFrameCount = -1;
-
         protected void PreCull()
         {
             // Only update poses on the first camera per frame.
@@ -222,7 +227,7 @@ namespace Valve.VR
         protected void OnQuit(VREvent_t vrEvent)
         {
 #if UNITY_EDITOR
-            EditorApplication.isPlaying = false;
+            UnityEditor.EditorApplication.isPlaying = false;
 #else
 		    Application.Quit();
 #endif

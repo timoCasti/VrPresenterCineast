@@ -60,6 +60,14 @@ public class Displayal : MonoBehaviour
             Debug.LogError("no dp");
         }
 
+        /*var canvas = transform.Find("MyCanvas");
+        if (canvas != null) {
+            Debug.Log("i found a canvas");
+        }
+        else {
+            Debug.Log("no canvas");
+        }*/
+
         // create new Boxcollider
 
 

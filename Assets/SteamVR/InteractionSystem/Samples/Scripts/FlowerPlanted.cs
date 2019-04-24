@@ -1,7 +1,9 @@
 ﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using Valve.VR.InteractionSystem;
 
 namespace Valve.VR.InteractionSystem.Sample
 {
@@ -22,40 +24,39 @@ namespace Valve.VR.InteractionSystem.Sample
             Vector3 plantPosition;
 
             RaycastHit hitInfo;
-            var hit = Physics.Raycast(transform.position, Vector3.down, out hitInfo);
+            bool hit = Physics.Raycast(this.transform.position, Vector3.down, out hitInfo);
             if (hit)
             {
-                plantPosition = hitInfo.point + Vector3.up * 0.05f;
+                plantPosition = hitInfo.point + (Vector3.up * 0.05f);
             }
             else
             {
-                plantPosition = transform.position;
+                plantPosition = this.transform.position;
                 plantPosition.y = Player.instance.transform.position.y;
             }
 
-            var planting = gameObject;
+            GameObject planting = this.gameObject;
             planting.transform.position = plantPosition;
             planting.transform.rotation = Quaternion.Euler(0, Random.value * 360f, 0);
 
-            planting.GetComponentInChildren<MeshRenderer>().material
-                .SetColor("_TintColor", Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
+            planting.GetComponentInChildren<MeshRenderer>().material.SetColor("_TintColor", Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
 
-            var rigidbody = planting.GetComponent<Rigidbody>();
+            Rigidbody rigidbody = planting.GetComponent<Rigidbody>();
             if (rigidbody != null)
                 rigidbody.isKinematic = true;
 
 
-            var initialScale = Vector3.one * 0.01f;
-            var targetScale = Vector3.one * (1 + Random.value * 0.25f);
 
-            var startTime = Time.time;
-            var overTime = 0.5f;
-            var endTime = startTime + overTime;
+            Vector3 initialScale = Vector3.one * 0.01f;
+            Vector3 targetScale = Vector3.one * (1 + (Random.value * 0.25f));
+
+            float startTime = Time.time;
+            float overTime = 0.5f;
+            float endTime = startTime + overTime;
 
             while (Time.time < endTime)
             {
-                planting.transform.localScale =
-                    Vector3.Slerp(initialScale, targetScale, (Time.time - startTime) / overTime);
+                planting.transform.localScale = Vector3.Slerp(initialScale, targetScale, (Time.time - startTime) / overTime);
                 yield return null;
             }
 

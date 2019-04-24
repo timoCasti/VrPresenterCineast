@@ -4,33 +4,32 @@
 //
 //=============================================================================
 
-using System.Diagnostics;
-using System.IO;
-using UnityEditor;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
+using UnityEditor;
+using System.Text;
+using System.Collections.Generic;
+using Valve.VR;
+using System.IO;
 
 namespace Valve.VR
 {
-    [CustomEditor(typeof(SteamVR_Skybox))]
-    [CanEditMultipleObjects]
+    [CustomEditor(typeof(SteamVR_Skybox)), CanEditMultipleObjects]
     public class SteamVR_SkyboxEditor : Editor
     {
         private const string nameFormat = "{0}/{1}-{2}.png";
-
         private const string helpText = "Take snapshot will use the current " +
-                                        "position and rotation to capture six directional screenshots to use as this " +
-                                        "skybox's textures.  Note: This skybox is only used to override what shows up " +
-                                        "in the compositor (e.g. when loading levels).  Add a Camera component to this " +
-                                        "object to override default settings like which layers to render.  Additionally, " +
-                                        "by specifying your own targetTexture, you can control the size of the textures " +
-                                        "and other properties like antialiasing.  Don't forget to disable the camera.\n\n" +
-                                        "For stereo screenshots, a panorama is render for each eye using the specified " +
-                                        "ipd (in millimeters) broken up into segments cellSize pixels square to optimize " +
-                                        "generation.\n(32x32 takes about 10 seconds depending on scene complexity, 16x16 " +
-                                        "takes around a minute, while will 8x8 take several minutes.)\n\nTo test, hit " +
-                                        "play then pause - this will activate the skybox settings, and then drop you to " +
-                                        "the compositor where the skybox is rendered.";
+            "position and rotation to capture six directional screenshots to use as this " +
+            "skybox's textures.  Note: This skybox is only used to override what shows up " +
+            "in the compositor (e.g. when loading levels).  Add a Camera component to this " +
+            "object to override default settings like which layers to render.  Additionally, " +
+            "by specifying your own targetTexture, you can control the size of the textures " +
+            "and other properties like antialiasing.  Don't forget to disable the camera.\n\n" +
+            "For stereo screenshots, a panorama is render for each eye using the specified " +
+            "ipd (in millimeters) broken up into segments cellSize pixels square to optimize " +
+            "generation.\n(32x32 takes about 10 seconds depending on scene complexity, 16x16 " +
+            "takes around a minute, while will 8x8 take several minutes.)\n\nTo test, hit " +
+            "play then pause - this will activate the skybox settings, and then drop you to " +
+            "the compositor where the skybox is rendered.";
 
         public override void OnInspectorGUI()
         {
@@ -40,15 +39,14 @@ namespace Valve.VR
 
             if (GUILayout.Button("Take snapshot"))
             {
-                var directions = new[]
-                {
-                    Quaternion.LookRotation(Vector3.forward),
-                    Quaternion.LookRotation(Vector3.back),
-                    Quaternion.LookRotation(Vector3.left),
-                    Quaternion.LookRotation(Vector3.right),
-                    Quaternion.LookRotation(Vector3.up, Vector3.back),
-                    Quaternion.LookRotation(Vector3.down, Vector3.forward)
-                };
+                var directions = new Quaternion[] {
+                Quaternion.LookRotation(Vector3.forward),
+                Quaternion.LookRotation(Vector3.back),
+                Quaternion.LookRotation(Vector3.left),
+                Quaternion.LookRotation(Vector3.right),
+                Quaternion.LookRotation(Vector3.up, Vector3.back),
+                Quaternion.LookRotation(Vector3.down, Vector3.forward)
+            };
 
                 Camera tempCamera = null;
                 foreach (SteamVR_Skybox target in targets)
@@ -88,21 +86,20 @@ namespace Valve.VR
                     camera.orthographic = false;
                     camera.fieldOfView = 90;
 
-                    for (var i = 0; i < directions.Length; i++)
+                    for (int i = 0; i < directions.Length; i++)
                     {
                         t.rotation = baseRotation * directions[i];
                         camera.Render();
 
                         // Copy to texture and save to disk.
                         RenderTexture.active = targetTexture;
-                        var texture = new Texture2D(targetTexture.width, targetTexture.height, TextureFormat.ARGB32,
-                            false);
+                        var texture = new Texture2D(targetTexture.width, targetTexture.height, TextureFormat.ARGB32, false);
                         texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
                         texture.Apply();
                         RenderTexture.active = null;
 
                         var assetName = string.Format(nameFormat, assetPath, target.name, i);
-                        File.WriteAllBytes(assetName, texture.EncodeToPNG());
+                        System.IO.File.WriteAllBytes(assetName, texture.EncodeToPNG());
                     }
 
                     if (camera != tempCamera)
@@ -112,7 +109,10 @@ namespace Valve.VR
                     }
                 }
 
-                if (tempCamera != null) DestroyImmediate(tempCamera.gameObject);
+                if (tempCamera != null)
+                {
+                    Object.DestroyImmediate(tempCamera.gameObject);
+                }
 
                 // Now that everything has be written out, reload the associated assets and assign them.
                 AssetDatabase.Refresh();
@@ -123,14 +123,14 @@ namespace Valve.VR
                     var scenePath = Path.GetDirectoryName(targetScene.path);
                     var assetPath = scenePath + "/" + sceneName;
 
-                    for (var i = 0; i < directions.Length; i++)
+                    for (int i = 0; i < directions.Length; i++)
                     {
                         var assetName = string.Format(nameFormat, assetPath, target.name, i);
                         var importer = AssetImporter.GetAtPath(assetName) as TextureImporter;
 #if (UNITY_5_4 || UNITY_5_3 || UNITY_5_2 || UNITY_5_1 || UNITY_5_0)
                         importer.textureFormat = TextureImporterFormat.RGB24;
 #else
-                        importer.textureCompression = TextureImporterCompression.Uncompressed;
+					importer.textureCompression = TextureImporterCompression.Uncompressed;
 #endif
                         importer.wrapMode = TextureWrapMode.Clamp;
                         importer.mipmapEnabled = false;
@@ -147,13 +147,11 @@ namespace Valve.VR
                 const int height = width / 2;
                 const int halfHeight = height / 2;
 
-                var textures = new[]
-                {
-                    new Texture2D(width, height, TextureFormat.ARGB32, false),
-                    new Texture2D(width, height, TextureFormat.ARGB32, false)
-                };
+                var textures = new Texture2D[] {
+                new Texture2D(width, height, TextureFormat.ARGB32, false),
+                new Texture2D(width, height, TextureFormat.ARGB32, false) };
 
-                var timer = new Stopwatch();
+                var timer = new System.Diagnostics.Stopwatch();
 
                 Camera tempCamera = null;
                 foreach (SteamVR_Skybox target in targets)
@@ -192,11 +190,11 @@ namespace Valve.VR
 
                     var transform = camera.transform;
 
-                    var cellSize = int.Parse(target.StereoCellSize.ToString().Substring(1));
-                    var ipd = target.StereoIpdMm / 1000.0f;
-                    var vTotal = halfHeight / cellSize;
-                    var dv = 90.0f / vTotal; // vertical degrees per segment
-                    var dvHalf = dv / 2.0f;
+                    int cellSize = int.Parse(target.StereoCellSize.ToString().Substring(1));
+                    float ipd = target.StereoIpdMm / 1000.0f;
+                    int vTotal = halfHeight / cellSize;
+                    float dv = 90.0f / vTotal; // vertical degrees per segment
+                    float dvHalf = dv / 2.0f;
 
                     var targetTexture = new RenderTexture(cellSize, cellSize, 24);
                     targetTexture.wrapMode = TextureWrapMode.Clamp;
@@ -212,16 +210,16 @@ namespace Valve.VR
                     // separation similar around the sphere.  Rendering alternates between
                     // top and bottom sections, sweeping horizontally around the sphere,
                     // alternating left and right eyes.
-                    for (var v = 0; v < vTotal; v++)
+                    for (int v = 0; v < vTotal; v++)
                     {
-                        var pitch = 90.0f - v * dv - dvHalf;
+                        var pitch = 90.0f - (v * dv) - dvHalf;
                         var uTotal = width / targetTexture.width;
                         var du = 360.0f / uTotal; // horizontal degrees per segment
                         var duHalf = du / 2.0f;
 
                         var vTarget = v * halfHeight / vTotal;
 
-                        for (var i = 0; i < 2; i++) // top, bottom
+                        for (int i = 0; i < 2; i++) // top, bottom
                         {
                             if (i == 1)
                             {
@@ -229,22 +227,24 @@ namespace Valve.VR
                                 vTarget = height - vTarget - cellSize;
                             }
 
-                            for (var u = 0; u < uTotal; u++)
+                            for (int u = 0; u < uTotal; u++)
                             {
-                                var yaw = -180.0f + u * du + duHalf;
+                                var yaw = -180.0f + (u * du) + duHalf;
 
                                 var uTarget = u * width / uTotal;
 
                                 var xOffset = -ipd / 2 * Mathf.Cos(pitch * Mathf.Deg2Rad);
 
-                                for (var j = 0; j < 2; j++) // left, right
+                                for (int j = 0; j < 2; j++) // left, right
                                 {
                                     var texture = textures[j];
 
-                                    if (j == 1) xOffset = -xOffset;
+                                    if (j == 1)
+                                    {
+                                        xOffset = -xOffset;
+                                    }
 
-                                    var offset = baseRotation * Quaternion.Euler(0, yaw, 0) *
-                                                 new Vector3(xOffset, 0, 0);
+                                    var offset = baseRotation * Quaternion.Euler(0, yaw, 0) * new Vector3(xOffset, 0, 0);
                                     transform.position = basePosition + offset;
 
                                     var direction = Quaternion.Euler(pitch, yaw, 0.0f);
@@ -254,11 +254,11 @@ namespace Valve.VR
                                     var N = direction * Vector3.forward;
 
                                     // horizontal span of this section in degrees
-                                    var phi0 = yaw - du / 2;
+                                    var phi0 = yaw - (du / 2);
                                     var phi1 = phi0 + du;
 
                                     // vertical span of this section in degrees
-                                    var theta0 = pitch + dv / 2;
+                                    var theta0 = pitch + (dv / 2);
                                     var theta1 = theta0 - dv;
 
                                     var midPhi = (phi0 + phi1) / 2;
@@ -300,8 +300,7 @@ namespace Valve.VR
                                     camera.Render();
 
                                     RenderTexture.active = targetTexture;
-                                    texture.ReadPixels(new Rect(0, 0, targetTexture.width, targetTexture.height),
-                                        uTarget, vTarget);
+                                    texture.ReadPixels(new Rect(0, 0, targetTexture.width, targetTexture.height), uTarget, vTarget);
                                     RenderTexture.active = null;
                                 }
                             }
@@ -309,7 +308,7 @@ namespace Valve.VR
                     }
 
                     // Save textures to disk.
-                    for (var i = 0; i < 2; i++)
+                    for (int i = 0; i < 2; i++)
                     {
                         var texture = textures[i];
 
@@ -338,10 +337,13 @@ namespace Valve.VR
                     DestroyImmediate(fx);
 
                     timer.Stop();
-                    Debug.Log(string.Format("Screenshot took {0} seconds.", timer.Elapsed));
+                    Debug.Log(string.Format("<b>[SteamVR]</b> Screenshot took {0} seconds.", timer.Elapsed));
                 }
 
-                if (tempCamera != null) DestroyImmediate(tempCamera.gameObject);
+                if (tempCamera != null)
+                {
+                    DestroyImmediate(tempCamera.gameObject);
+                }
 
                 DestroyImmediate(textures[0]);
                 DestroyImmediate(textures[1]);
@@ -355,7 +357,7 @@ namespace Valve.VR
                     var scenePath = Path.GetDirectoryName(targetScene.path);
                     var assetPath = scenePath + "/" + sceneName;
 
-                    for (var i = 0; i < 2; i++)
+                    for (int i = 0; i < 2; i++)
                     {
                         var assetName = string.Format(nameFormat, assetPath, target.name, i);
                         var importer = AssetImporter.GetAtPath(assetName) as TextureImporter;
@@ -364,10 +366,10 @@ namespace Valve.VR
 #if (UNITY_5_4 || UNITY_5_3 || UNITY_5_2 || UNITY_5_1 || UNITY_5_0)
                         importer.SetPlatformTextureSettings("Standalone", width, TextureImporterFormat.RGB24);
 #else
-                        var settings = importer.GetPlatformTextureSettings("Standalone");
-                        settings.textureCompression = TextureImporterCompression.Uncompressed;
-                        settings.maxTextureSize = width;
-                        importer.SetPlatformTextureSettings(settings);
+					var settings = importer.GetPlatformTextureSettings("Standalone");
+					settings.textureCompression = TextureImporterCompression.Uncompressed;
+					settings.maxTextureSize = width;
+					importer.SetPlatformTextureSettings(settings);
 #endif
                         importer.SaveAndReimport();
 

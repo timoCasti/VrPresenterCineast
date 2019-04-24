@@ -5,28 +5,34 @@
 //=============================================================================
 
 using UnityEngine;
+using System.Collections;
 
 namespace Valve.VR.InteractionSystem
 {
-    //-------------------------------------------------------------------------
-    public class DestroyOnTriggerEnter : MonoBehaviour
-    {
-        public string tagFilter;
+	//-------------------------------------------------------------------------
+	public class DestroyOnTriggerEnter : MonoBehaviour
+	{
+		public string tagFilter;
 
-        private bool useTag;
+		private bool useTag;
 
-        //-------------------------------------------------
-        private void Start()
-        {
-            if (!string.IsNullOrEmpty(tagFilter)) useTag = true;
-        }
+		//-------------------------------------------------
+		void Start()
+		{
+			if ( !string.IsNullOrEmpty( tagFilter ) )
+			{
+				useTag = true;
+			}
+		}
 
 
-        //-------------------------------------------------
-        private void OnTriggerEnter(Collider collider)
-        {
-            if (!useTag || useTag && collider.gameObject.tag == tagFilter)
-                Destroy(collider.gameObject.transform.root.gameObject);
-        }
-    }
+		//-------------------------------------------------
+		void OnTriggerEnter( Collider collider )
+		{
+			if ( !useTag || ( useTag && collider.gameObject.tag == tagFilter ) )
+			{
+				Destroy( collider.gameObject.transform.root.gameObject );
+			}
+		}
+	}
 }

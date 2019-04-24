@@ -5,16 +5,17 @@
 //=============================================================================
 
 using UnityEngine;
+using Valve.VR;
 
 namespace Valve.VR
 {
     [RequireComponent(typeof(AudioListener))]
     public class SteamVR_Ears : MonoBehaviour
     {
-        private Quaternion offset;
-
-        private bool usingSpeakers;
         public SteamVR_Camera vrcam;
+
+        bool usingSpeakers;
+        Quaternion offset;
 
         private void OnNewPosesApplied()
         {
@@ -23,7 +24,7 @@ namespace Valve.VR
             transform.rotation = baseRotation * offset;
         }
 
-        private void OnEnable()
+        void OnEnable()
         {
             usingSpeakers = false;
 
@@ -35,8 +36,7 @@ namespace Valve.VR
                 {
                     usingSpeakers = true;
 
-                    var yawOffset = settings.GetFloat(OpenVR.k_pch_SteamVR_Section,
-                        OpenVR.k_pch_SteamVR_SpeakersForwardYawOffsetDegrees_Float, ref error);
+                    var yawOffset = settings.GetFloat(OpenVR.k_pch_SteamVR_Section, OpenVR.k_pch_SteamVR_SpeakersForwardYawOffsetDegrees_Float, ref error);
                     offset = Quaternion.Euler(0.0f, yawOffset, 0.0f);
                 }
             }
@@ -45,7 +45,7 @@ namespace Valve.VR
                 SteamVR_Events.NewPosesApplied.Listen(OnNewPosesApplied);
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
             if (usingSpeakers)
                 SteamVR_Events.NewPosesApplied.Remove(OnNewPosesApplied);

@@ -4,10 +4,13 @@
 //
 //=============================================================================
 
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Valve.VR.InteractionSystem
 {
+
     public enum WhichHand
     {
         Left,
@@ -15,8 +18,10 @@ namespace Valve.VR.InteractionSystem
     }
 
     [RequireComponent(typeof(Throwable))]
+
     public class Equippable : MonoBehaviour
     {
+
         [Tooltip("Array of children you do not want to be mirrored. Text, logos, etc.")]
         public Transform[] antiFlip;
 
@@ -32,35 +37,38 @@ namespace Valve.VR.InteractionSystem
             {
                 if (interactable.attachedToHand)
                     return interactable.attachedToHand.handType;
-                return SteamVR_Input_Sources.Any;
+                else
+                    return SteamVR_Input_Sources.Any;
             }
         }
-
+        
         private void Start()
         {
             initialScale = transform.localScale;
             interactable = GetComponent<Interactable>();
         }
-
+        
         private void Update()
         {
             if (interactable.attachedToHand)
             {
-                var flipScale = initialScale;
-                if (attachedHandType == SteamVR_Input_Sources.RightHand && defaultHand == WhichHand.Right ||
-                    attachedHandType == SteamVR_Input_Sources.LeftHand && defaultHand == WhichHand.Left)
+                Vector3 flipScale = initialScale;
+                if ((attachedHandType == SteamVR_Input_Sources.RightHand && defaultHand == WhichHand.Right) || (attachedHandType == SteamVR_Input_Sources.LeftHand && defaultHand == WhichHand.Left))
                 {
                     flipScale.x *= 1;
-                    for (var transformIndex = 0; transformIndex < antiFlip.Length; transformIndex++)
+                    for (int transformIndex = 0; transformIndex < antiFlip.Length; transformIndex++)
+                    {
                         antiFlip[transformIndex].localScale = new Vector3(1, 1, 1);
+                    }
                 }
                 else
                 {
                     flipScale.x *= -1;
-                    for (var transformIndex = 0; transformIndex < antiFlip.Length; transformIndex++)
+                    for (int transformIndex = 0; transformIndex < antiFlip.Length; transformIndex++)
+                    {
                         antiFlip[transformIndex].localScale = new Vector3(-1, 1, 1);
+                    }
                 }
-
                 transform.localScale = flipScale;
             }
         }

@@ -6,30 +6,32 @@
 //=============================================================================
 
 using UnityEngine;
+using System.Collections;
 
 namespace Valve.VR.InteractionSystem
 {
-    //-------------------------------------------------------------------------
-    public class SpawnAndAttachAfterControllerIsTracking : MonoBehaviour
-    {
-        private Hand hand;
-        public GameObject itemPrefab;
+	//-------------------------------------------------------------------------
+	public class SpawnAndAttachAfterControllerIsTracking : MonoBehaviour
+	{
+		private Hand hand;
+		public GameObject itemPrefab;
+
+	
+		//-------------------------------------------------
+		void Start()
+		{
+			hand = GetComponentInParent<Hand>();
+		}
 
 
-        //-------------------------------------------------
-        private void Start()
-        {
-            hand = GetComponentInParent<Hand>();
-        }
-
-
-        //-------------------------------------------------
-        private void Update()
-        {
-            if (itemPrefab != null)
+		//-------------------------------------------------
+		void Update()
+		{
+			if ( itemPrefab != null )
+			{
                 if (hand.isActive && hand.isPoseValid)
                 {
-                    var objectToAttach = Instantiate(itemPrefab);
+                    GameObject objectToAttach = GameObject.Instantiate(itemPrefab);
                     objectToAttach.SetActive(true);
                     hand.AttachObject(objectToAttach, GrabTypes.Scripted);
                     hand.TriggerHapticPulse(800);
@@ -39,6 +41,7 @@ namespace Valve.VR.InteractionSystem
                     // To fix this we change the object's scale back to its original, pre-attach scale.
                     objectToAttach.transform.localScale = itemPrefab.transform.localScale;
                 }
-        }
-    }
+			}
+		}
+	}
 }

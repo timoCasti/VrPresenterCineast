@@ -5,16 +5,17 @@
 //=============================================================================
 
 using UnityEngine;
+using System.Collections;
 
 namespace Valve.VR.InteractionSystem
 {
-    //-------------------------------------------------------------------------
-    public class DontDestroyOnLoad : MonoBehaviour
-    {
-        //-------------------------------------------------
-        private void Awake()
-        {
-            DontDestroyOnLoad(this);
-        }
-    }
+	//-------------------------------------------------------------------------
+	public class DontDestroyOnLoad : MonoBehaviour
+	{
+		//-------------------------------------------------
+		void Awake()
+		{
+			DontDestroyOnLoad( this );
+		}
+	}
 }

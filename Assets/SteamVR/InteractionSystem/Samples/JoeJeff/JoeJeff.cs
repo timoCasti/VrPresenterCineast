@@ -1,47 +1,49 @@
 ﻿using UnityEngine;
+using System.Collections;
+using Valve.VR.InteractionSystem;
 
 namespace Valve.VR.InteractionSystem.Sample
 {
     public class JoeJeff : MonoBehaviour
     {
-        public float airControl;
         public float animationSpeed;
 
-        private Animator animator;
+        public float jumpVelocity;
 
-        public FireSource fire;
+        [SerializeField]
+        private float m_MovingTurnSpeed = 360;
+        [SerializeField]
+        private float m_StationaryTurnSpeed = 180;
 
-        [SerializeField] private float footHeight = 0.1f;
-
-        private RaycastHit footHit;
-
-        [SerializeField] private float footRadius = 0.03f;
-
-        private float forwardAmount;
+        public float airControl;
 
         [Tooltip("The time it takes after landing a jump to slow down")]
         public float frictionTime = 0.2f;
 
-        private float groundedTime;
+        [SerializeField]
+        private float footHeight = 0.1f;
+        [SerializeField]
+        private float footRadius = 0.03f;
 
-        private bool held;
-
-        private Vector3 input;
-        private Interactable interactable;
+        private RaycastHit footHit;
 
         private bool isGrounded;
 
-        private float jumpTimer;
+        private float turnAmount;
+        private float forwardAmount;
 
-        public float jumpVelocity;
+        private float groundedTime;
 
-        [SerializeField] private float m_MovingTurnSpeed = 360;
+        private Animator animator;
 
-        [SerializeField] private float m_StationaryTurnSpeed = 180;
+        private Vector3 input;
+
+        private bool held;
 
         private new Rigidbody rigidbody;
+        private Interactable interactable;
 
-        private float turnAmount;
+        public FireSource fire;
 
 
         private void Start()
@@ -68,13 +70,12 @@ namespace Valve.VR.InteractionSystem.Sample
 
         private void FixRotation()
         {
-            var eulers = transform.eulerAngles;
+            Vector3 eulers = transform.eulerAngles;
             eulers.x = 0;
             eulers.z = 0;
-            var targetRotation = Quaternion.Euler(eulers);
+            Quaternion targetRotation = Quaternion.Euler(eulers);
 
-            transform.rotation =
-                Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * (isGrounded ? 20 : 3));
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * (isGrounded ? 20 : 3));
         }
 
 
@@ -84,7 +85,7 @@ namespace Valve.VR.InteractionSystem.Sample
             // this allows us to modify the positional speed before it's applied.
             if (Time.deltaTime > 0)
             {
-                var animationDelta = animator.deltaPosition / Time.deltaTime;
+                Vector3 animationDelta = (animator.deltaPosition) / Time.deltaTime;
 
                 animationDelta = Vector3.ProjectOnPlane(animationDelta, footHit.normal);
 
@@ -92,15 +93,15 @@ namespace Valve.VR.InteractionSystem.Sample
                 {
                     if (groundedTime < frictionTime) //slow down when first hitting the floor after a jump
                     {
-                        var moveFac = Mathf.InverseLerp(0, frictionTime, groundedTime);
+                        float moveFac = Mathf.InverseLerp(0, frictionTime, groundedTime);
                         //print(moveFac);
-                        var lerpV = Vector3.Lerp(rigidbody.velocity, animationDelta, moveFac * Time.deltaTime * 30);
+                        Vector3 lerpV = Vector3.Lerp(rigidbody.velocity, animationDelta, moveFac * Time.deltaTime * 30);
                         animationDelta.x = lerpV.x;
                         animationDelta.z = lerpV.z;
                     }
 
                     // adding a little downward force to keep him on the floor
-                    animationDelta.y += -0.2f; // rb.velocity.y;
+                    animationDelta.y += -0.2f;// rb.velocity.y;
                     rigidbody.velocity = animationDelta;
                 }
                 else
@@ -124,7 +125,10 @@ namespace Valve.VR.InteractionSystem.Sample
             ApplyExtraTurnRotation();
 
             // control and velocity handling is different when grounded and airborne:
-            if (isGrounded) HandleGroundedMovement(jump);
+            if (isGrounded)
+            {
+                HandleGroundedMovement(jump);
+            }
 
 
             // send input and other state parameters to the animator
@@ -150,19 +154,21 @@ namespace Valve.VR.InteractionSystem.Sample
         private void ApplyExtraTurnRotation()
         {
             // help the character turn faster (this is in addition to root rotation in the animation)
-            var turnSpeed = Mathf.Lerp(m_StationaryTurnSpeed, m_MovingTurnSpeed, forwardAmount);
+            float turnSpeed = Mathf.Lerp(m_StationaryTurnSpeed, m_MovingTurnSpeed, forwardAmount);
             transform.Rotate(0, turnAmount * turnSpeed * Time.deltaTime, 0);
         }
 
         private void CheckGrounded()
         {
             isGrounded = false;
-            if ((jumpTimer < 0) & !held) // make sure we didn't just jump
+            if (jumpTimer < 0 & !held) // make sure we didn't just jump
             {
-                isGrounded = Physics.SphereCast(new Ray(transform.position + Vector3.up * footHeight, Vector3.down),
-                    footRadius, out footHit, footHeight - footRadius);
-                if (Vector2.Distance(new Vector2(transform.position.x, transform.position.z),
-                        new Vector2(footHit.point.x, footHit.point.z)) > footRadius / 2) isGrounded = false;
+                isGrounded = (Physics.SphereCast(new Ray(transform.position + Vector3.up * footHeight, Vector3.down), footRadius, out footHit, footHeight - footRadius));
+                if (Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(footHit.point.x, footHit.point.z)) > footRadius / 2)
+                {
+                    isGrounded = false;
+                    //on slope, hit point is on edge of sphere cast
+                }
             }
         }
 
@@ -181,19 +187,24 @@ namespace Valve.VR.InteractionSystem.Sample
         }
 
 
+
         private void HandleGroundedMovement(bool jump)
         {
             // check whether conditions are right to allow a jump:
-            if (jump && isGrounded) Jump();
+            if (jump && isGrounded)
+            {
+                Jump();
+            }
         }
 
-        private void Jump()
+        private float jumpTimer;
+        public void Jump()
         {
             isGrounded = false;
             jumpTimer = 0.1f;
             animator.applyRootMotion = false;
             rigidbody.position += Vector3.up * 0.03f;
-            var velocity = rigidbody.velocity;
+            Vector3 velocity = rigidbody.velocity;
             velocity.y = jumpVelocity;
             rigidbody.velocity = velocity;
         }

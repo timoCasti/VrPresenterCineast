@@ -7,6 +7,6 @@ namespace Valve.VR
     {
         LeftRight,
         Single,
-        Hidden
+        Hidden,
     }
 }

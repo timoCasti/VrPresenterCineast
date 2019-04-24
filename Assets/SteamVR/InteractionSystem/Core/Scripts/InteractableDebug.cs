@@ -4,50 +4,46 @@
 //
 //=============================================================================
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Valve.VR.InteractionSystem
 {
-    //-------------------------------------------------------------------------
-    public class InteractableDebug : MonoBehaviour
-    {
-        private const bool onlyColorOnChange = true;
+	//-------------------------------------------------------------------------
+	public class InteractableDebug : MonoBehaviour
+	{
+        [System.NonSerialized]
+        public Hand attachedToHand;
 
-        [NonSerialized] public Hand attachedToHand;
+        public float simulateReleasesForXSecondsAroundRelease = 0;
+        public float simulateReleasesEveryXSeconds = 0.005f;
+        public bool setPositionsForSimulations = false;
+
+        private Renderer[] selfRenderers;
 
         private Collider[] colliders;
 
-        private bool isSimulation;
-
         private Color lastColor;
+
+        private Throwable throwable;
+        private bool isThrowable { get { return throwable != null; } }
+
+        private const bool onlyColorOnChange = true;
 
         public new Rigidbody rigidbody;
 
-        private Renderer[] selfRenderers;
-        public bool setPositionsForSimulations;
-        public float simulateReleasesEveryXSeconds = 0.005f;
-
-        public float simulateReleasesForXSecondsAroundRelease;
-
-        private Throwable throwable;
-
-        private bool isThrowable
-        {
-            get { return throwable != null; }
-        }
-
         private void Awake()
         {
-            selfRenderers = GetComponentsInChildren<Renderer>();
-            throwable = GetComponent<Throwable>();
-            rigidbody = GetComponent<Rigidbody>();
-            colliders = GetComponentsInChildren<Collider>();
+            selfRenderers = this.GetComponentsInChildren<Renderer>();
+            throwable = this.GetComponent<Throwable>();
+            rigidbody = this.GetComponent<Rigidbody>();
+            colliders = this.GetComponentsInChildren<Collider>();
         }
 
-        private void OnAttachedToHand(Hand hand)
-        {
+        private void OnAttachedToHand( Hand hand )
+		{
             attachedToHand = hand;
 
             CreateMarker(Color.green);
@@ -77,15 +73,15 @@ namespace Valve.VR.InteractionSystem
                     break;
             }
 
-            if (onlyColorOnChange && grabbedColor != lastColor || onlyColorOnChange == false)
+            if ((onlyColorOnChange && grabbedColor != lastColor) || onlyColorOnChange == false)
                 ColorSelf(grabbedColor);
 
             lastColor = grabbedColor;
         }
 
-
-        private void OnDetachedFromHand(Hand hand)
-        {
+        
+        private void OnDetachedFromHand( Hand hand )
+		{
             if (isThrowable)
             {
                 Vector3 velocity;
@@ -101,24 +97,28 @@ namespace Valve.VR.InteractionSystem
 
             if (isSimulation == false && simulateReleasesForXSecondsAroundRelease != 0)
             {
-                var startTime = -simulateReleasesForXSecondsAroundRelease;
-                var endTime = simulateReleasesForXSecondsAroundRelease;
+                float startTime = -simulateReleasesForXSecondsAroundRelease;
+                float endTime = simulateReleasesForXSecondsAroundRelease;
 
-                var list = new List<InteractableDebug>();
+                List<InteractableDebug> list = new List<InteractableDebug>();
                 list.Add(this);
 
-                for (var offset = startTime; offset <= endTime; offset += simulateReleasesEveryXSeconds)
+                for (float offset = startTime; offset <= endTime; offset += simulateReleasesEveryXSeconds)
                 {
-                    var lerp = Mathf.InverseLerp(startTime, endTime, offset);
-                    var copy = CreateSimulation(hand, offset, Color.Lerp(Color.red, Color.green, lerp));
+                    float lerp = Mathf.InverseLerp(startTime, endTime, offset);
+                    InteractableDebug copy = CreateSimulation(hand, offset, Color.Lerp(Color.red, Color.green, lerp));
                     list.Add(copy);
                 }
 
-                for (var index = 0; index < list.Count; index++)
-                for (var otherIndex = 0; otherIndex < list.Count; otherIndex++)
-                    list[index].IgnoreObject(list[otherIndex]);
+                for (int index = 0; index < list.Count; index++)
+                {
+                    for (int otherIndex = 0; otherIndex < list.Count; otherIndex++)
+                    {
+                        list[index].IgnoreObject(list[otherIndex]);
+                    }
+                }
             }
-        }
+		}
 
         public Collider[] GetColliders()
         {
@@ -127,13 +127,18 @@ namespace Valve.VR.InteractionSystem
 
         public void IgnoreObject(InteractableDebug otherInteractable)
         {
-            var otherColliders = otherInteractable.GetColliders();
+            Collider[] otherColliders = otherInteractable.GetColliders();
 
-            for (var myIndex = 0; myIndex < colliders.Length; myIndex++)
-            for (var otherIndex = 0; otherIndex < otherColliders.Length; otherIndex++)
-                Physics.IgnoreCollision(colliders[myIndex], otherColliders[otherIndex]);
+            for (int myIndex = 0; myIndex < colliders.Length; myIndex++)
+            {
+                for (int otherIndex = 0; otherIndex < otherColliders.Length; otherIndex++)
+                {
+                    Physics.IgnoreCollision(colliders[myIndex], otherColliders[otherIndex]);
+                }
+            }
         }
 
+        private bool isSimulation = false;
         public void SetIsSimulation()
         {
             isSimulation = true;
@@ -141,13 +146,13 @@ namespace Valve.VR.InteractionSystem
 
         private InteractableDebug CreateSimulation(Hand fromHand, float timeOffset, Color copyColor)
         {
-            var copy = Instantiate(gameObject);
-            var debugCopy = copy.GetComponent<InteractableDebug>();
+            GameObject copy = GameObject.Instantiate(this.gameObject);
+            InteractableDebug debugCopy = copy.GetComponent<InteractableDebug>();
             debugCopy.SetIsSimulation();
             debugCopy.ColorSelf(copyColor);
             copy.name = string.Format("{0} [offset: {1:0.000}]", copy.name, timeOffset);
 
-            var velocity = fromHand.GetTrackedObjectVelocity(timeOffset);
+            Vector3 velocity = fromHand.GetTrackedObjectVelocity(timeOffset);
             velocity *= throwable.scaleReleaseVelocity;
 
             debugCopy.rigidbody.velocity = velocity;
@@ -162,11 +167,11 @@ namespace Valve.VR.InteractionSystem
 
         private void CreateMarker(Color markerColor, Vector3 forward, float destroyAfter = 10)
         {
-            var baseMarker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            GameObject baseMarker = GameObject.CreatePrimitive(PrimitiveType.Cube);
             DestroyImmediate(baseMarker.GetComponent<Collider>());
             baseMarker.transform.localScale = new Vector3(0.02f, 0.02f, 0.02f);
 
-            var line = Instantiate(baseMarker);
+            GameObject line = GameObject.Instantiate(baseMarker);
             line.transform.localScale = new Vector3(0.01f, 0.01f, 0.25f);
             line.transform.parent = baseMarker.transform;
             line.transform.localPosition = new Vector3(0, 0, line.transform.localScale.z / 2f);
@@ -187,8 +192,10 @@ namespace Valve.VR.InteractionSystem
 
         private void ColorThing(Color newColor, Renderer[] renderers)
         {
-            for (var rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
+            for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
+            {
                 renderers[rendererIndex].material.color = newColor;
+            }
         }
     }
 }

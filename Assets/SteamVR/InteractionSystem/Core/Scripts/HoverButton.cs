@@ -5,6 +5,8 @@
 //=============================================================================
 
 using UnityEngine;
+using System.Collections;
+using UnityEngine.Events;
 
 namespace Valve.VR.InteractionSystem
 {
@@ -12,16 +14,26 @@ namespace Valve.VR.InteractionSystem
     [RequireComponent(typeof(Interactable))]
     public class HoverButton : MonoBehaviour
     {
-        public bool buttonDown;
-        public bool buttonUp;
+        public Transform movingPart;
 
-        [Range(0, 1)] public float disengageAtPercent = 0.9f;
+        public Vector3 localMoveDistance = new Vector3(0, -0.1f, 0);
 
+        [Range(0, 1)]
+        public float engageAtPercent = 0.95f;
+
+        [Range(0, 1)]
+        public float disengageAtPercent = 0.9f;
+
+        public HandEvent onButtonDown;
+        public HandEvent onButtonUp;
+        public HandEvent onButtonIsPressed;
+
+        public bool engaged = false;
+        public bool buttonDown = false;
+        public bool buttonUp = false;
+
+        private Vector3 startPosition;
         private Vector3 endPosition;
-
-        [Range(0, 1)] public float engageAtPercent = 0.95f;
-
-        public bool engaged;
 
         private Vector3 handEnteredPosition;
 
@@ -29,19 +41,10 @@ namespace Valve.VR.InteractionSystem
 
         private Hand lastHoveredHand;
 
-        public Vector3 localMoveDistance = new Vector3(0, -0.1f, 0);
-        public Transform movingPart;
-
-        public HandEvent onButtonDown;
-        public HandEvent onButtonIsPressed;
-        public HandEvent onButtonUp;
-
-        private Vector3 startPosition;
-
         private void Start()
         {
-            if (movingPart == null && transform.childCount > 0)
-                movingPart = transform.GetChild(0);
+            if (movingPart == null && this.transform.childCount > 0)
+                movingPart = this.transform.GetChild(0);
 
             startPosition = movingPart.localPosition;
             endPosition = startPosition + localMoveDistance;
@@ -53,11 +56,10 @@ namespace Valve.VR.InteractionSystem
             hovering = true;
             lastHoveredHand = hand;
 
-            var wasEngaged = engaged;
+            bool wasEngaged = engaged;
 
-            var currentDistance = Vector3.Distance(movingPart.parent.InverseTransformPoint(hand.transform.position),
-                endPosition);
-            var enteredDistance = Vector3.Distance(handEnteredPosition, endPosition);
+            float currentDistance = Vector3.Distance(movingPart.parent.InverseTransformPoint(hand.transform.position), endPosition);
+            float enteredDistance = Vector3.Distance(handEnteredPosition, endPosition);
 
             if (currentDistance > enteredDistance)
             {
@@ -65,9 +67,9 @@ namespace Valve.VR.InteractionSystem
                 handEnteredPosition = movingPart.parent.InverseTransformPoint(hand.transform.position);
             }
 
-            var distanceDifference = enteredDistance - currentDistance;
+            float distanceDifference = enteredDistance - currentDistance;
 
-            var lerp = Mathf.InverseLerp(0, localMoveDistance.magnitude, distanceDifference);
+            float lerp = Mathf.InverseLerp(0, localMoveDistance.magnitude, distanceDifference);
 
             if (lerp > engageAtPercent)
                 engaged = true;
@@ -95,8 +97,8 @@ namespace Valve.VR.InteractionSystem
 
         private void InvokeEvents(bool wasEngaged, bool isEngaged)
         {
-            buttonDown = wasEngaged == false && isEngaged;
-            buttonUp = wasEngaged && isEngaged == false;
+            buttonDown = wasEngaged == false && isEngaged == true;
+            buttonUp = wasEngaged == true && isEngaged == false;
 
             if (buttonDown && onButtonDown != null)
                 onButtonDown.Invoke(lastHoveredHand);

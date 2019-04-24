@@ -1,88 +1,67 @@
 ﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
 
-using System;
 using UnityEngine;
+using System.Collections;
 
 namespace Valve.VR.InteractionSystem.Sample
 {
     public class FloppyHand : MonoBehaviour
     {
-        public Vector3 constforce;
-
         protected float fingerFlexAngle = 140;
-
-        public Finger[] fingers;
+        
+        public SteamVR_Action_Single squeezyAction = SteamVR_Input.GetAction<SteamVR_Action_Single>("Squeeze");
         public SteamVR_Input_Sources inputSource;
 
-        [SteamVR_DefaultAction("Squeeze")] public SteamVR_Action_Single squeezyAction;
-
-        private void Start()
-        {
-            for (var fingerIndex = 0; fingerIndex < fingers.Length; fingerIndex++)
-            {
-                fingers[fingerIndex].Init();
-                fingers[fingerIndex].flexAngle = fingerFlexAngle;
-                fingers[fingerIndex].squeezyAction = squeezyAction;
-                fingers[fingerIndex].inputSource = inputSource;
-            }
-        }
-
-        private void Update()
-        {
-            for (var fingerIndex = 0; fingerIndex < fingers.Length; fingerIndex++)
-            {
-                fingers[fingerIndex].ApplyForce(constforce);
-                fingers[fingerIndex].UpdateFinger(Time.deltaTime);
-                fingers[fingerIndex].ApplyTransforms();
-            }
-        }
-
-        [Serializable]
+        [System.Serializable]
         public class Finger
         {
-            public enum eulerAxis
-            {
-                X,
-                Y,
-                Z
-            }
+            public float mass;
 
-            public Transform[] bones;
-            private Transform[] boneTips;
-            private readonly float damping = 8;
-
-
-            [HideInInspector] public float flexAngle;
+            [Range(0, 1)]
+            public float pos;
 
             public Vector3 forwardAxis;
-            private Vector3[,] inertiaSmoothing;
-
-            private readonly int inertiaSteps = 10;
-            public SteamVR_Input_Sources inputSource;
-            private readonly float k = 400;
-            public float mass;
-            private Vector3[] oldTipDelta;
-            private Vector3[] oldTipPosition;
-
-            [Range(0, 1)] public float pos;
-
-            public Vector2 referenceAngles;
-            public eulerAxis referenceAxis;
-            public Transform referenceBone;
 
             public SkinnedMeshRenderer renderer;
+            [HideInInspector]
+            public SteamVR_Action_Single squeezyAction;
+            public SteamVR_Input_Sources inputSource;
+
+            public Transform[] bones;
+            public Transform referenceBone;
+            public Vector2 referenceAngles;
+
+            public enum eulerAxis
+            {
+                X, Y, Z
+            }
+            public eulerAxis referenceAxis;
+
+
+            [HideInInspector]
+            public float flexAngle;
 
             private Vector3[] rotation;
-
-            [HideInInspector] public SteamVR_Action_Single squeezyAction;
-
-            private float squeezySmooth;
-            private Quaternion[] startRot;
             private Vector3[] velocity;
+            private Transform[] boneTips;
+            private Vector3[] oldTipPosition;
+            private Vector3[] oldTipDelta;
+            private Vector3[,] inertiaSmoothing;
+
+            float squeezySmooth;
+
+            private int inertiaSteps = 10;
+            private float k = 400;
+            private float damping = 8;
+            private Quaternion[] startRot;
 
             public void ApplyForce(Vector3 worldForce)
             {
-                for (var i = 0; i < startRot.Length; i++) velocity[i] += worldForce / 50;
+                for (int i = 0; i < startRot.Length; i++)
+                {
+                    velocity[i] += worldForce / 50;
+                }
+
             }
 
 
@@ -95,10 +74,13 @@ namespace Valve.VR.InteractionSystem.Sample
                 oldTipDelta = new Vector3[bones.Length];
                 boneTips = new Transform[bones.Length];
                 inertiaSmoothing = new Vector3[bones.Length, inertiaSteps];
-                for (var i = 0; i < bones.Length; i++)
+                for (int i = 0; i < bones.Length; i++)
                 {
                     startRot[i] = bones[i].localRotation;
-                    if (i < bones.Length - 1) boneTips[i] = bones[i + 1];
+                    if (i < bones.Length - 1)
+                    {
+                        boneTips[i] = bones[i + 1];
+                    }
                 }
             }
 
@@ -113,7 +95,10 @@ namespace Valve.VR.InteractionSystem.Sample
 
                 squeezySmooth = Mathf.Lerp(squeezySmooth, Mathf.Sqrt(squeezeValue), deltaTime * 10);
 
-                if (renderer.sharedMesh.blendShapeCount > 0) renderer.SetBlendShapeWeight(0, squeezySmooth * 100);
+                if (renderer.sharedMesh.blendShapeCount > 0)
+                {
+                    renderer.SetBlendShapeWeight(0, squeezySmooth * 100);
+                }
 
                 float boneRot = 0;
                 if (referenceAxis == eulerAxis.X)
@@ -127,63 +112,71 @@ namespace Valve.VR.InteractionSystem.Sample
                 pos = Mathf.InverseLerp(referenceAngles.x, referenceAngles.y, boneRot);
 
                 if (mass > 0)
-                    for (var boneIndex = 0; boneIndex < bones.Length; boneIndex++)
+                {
+                    for (int boneIndex = 0; boneIndex < bones.Length; boneIndex++)
                     {
-                        var useOffset = boneTips[boneIndex] != null;
+                        bool useOffset = boneTips[boneIndex] != null;
                         if (useOffset) // inertia sim
                         {
-                            var offset =
-                                (boneTips[boneIndex].localPosition -
-                                 bones[boneIndex].InverseTransformPoint(oldTipPosition[boneIndex])) / deltaTime;
-                            var inertia = (offset - oldTipDelta[boneIndex]) / deltaTime;
+                            Vector3 offset = (boneTips[boneIndex].localPosition - bones[boneIndex].InverseTransformPoint(oldTipPosition[boneIndex])) / deltaTime;
+                            Vector3 inertia = (offset - oldTipDelta[boneIndex]) / deltaTime;
                             oldTipDelta[boneIndex] = offset;
 
-                            var drag = offset * -2;
+                            Vector3 drag = offset * -2;
                             inertia *= -2f;
 
-                            for (var offsetIndex = inertiaSteps - 1;
-                                offsetIndex > 0;
-                                offsetIndex--) // offset inertia steps
+                            for (int offsetIndex = inertiaSteps - 1; offsetIndex > 0; offsetIndex--) // offset inertia steps
+                            {
                                 inertiaSmoothing[boneIndex, offsetIndex] = inertiaSmoothing[boneIndex, offsetIndex - 1];
+                            }
                             inertiaSmoothing[boneIndex, 0] = inertia;
 
-                            var smoothedInertia = Vector3.zero;
-                            for (var offsetIndex = 0; offsetIndex < inertiaSteps; offsetIndex++) // offset inertia steps
+                            Vector3 smoothedInertia = Vector3.zero;
+                            for (int offsetIndex = 0; offsetIndex < inertiaSteps; offsetIndex++) // offset inertia steps
+                            {
                                 smoothedInertia += inertiaSmoothing[boneIndex, offsetIndex];
+                            }
 
                             smoothedInertia = smoothedInertia / inertiaSteps;
                             //if (boneIndex == 0 && Input.GetKey(KeyCode.Space))
                             //    Debug.Log(smoothedInertia);
                             smoothedInertia = PowVector(smoothedInertia / 20, 3) * 20;
 
-                            var forward = forwardAxis;
-                            var forwardDrag = forwardAxis + drag;
-                            var forwardInertia = forwardAxis + smoothedInertia;
-                            var dragQuaternion = Quaternion.FromToRotation(forward, forwardDrag);
-                            var inertiaQuaternion = Quaternion.FromToRotation(forward, forwardInertia);
+                            Vector3 forward = forwardAxis;
+                            Vector3 forwardDrag = forwardAxis + drag;
+                            Vector3 forwardInertia = forwardAxis + smoothedInertia;
+                            Quaternion dragQuaternion = Quaternion.FromToRotation(forward, forwardDrag);
+                            Quaternion inertiaQuaternion = Quaternion.FromToRotation(forward, forwardInertia);
                             velocity[boneIndex] += FixVector(dragQuaternion.eulerAngles) * 2 * deltaTime;
                             velocity[boneIndex] += FixVector(inertiaQuaternion.eulerAngles) * 50 * deltaTime;
                             velocity[boneIndex] = Vector3.ClampMagnitude(velocity[boneIndex], 1000);
+
                         }
 
-                        var targetPos = pos * Vector3.right * (flexAngle / bones.Length);
+                        Vector3 targetPos = pos * Vector3.right * (flexAngle / bones.Length);
 
-                        var springForce = -k * (rotation[boneIndex] - targetPos);
+                        Vector3 springForce = -k * (rotation[boneIndex] - targetPos);
                         var dampingForce = damping * velocity[boneIndex];
                         var force = springForce - dampingForce;
                         var acceleration = force / mass;
                         velocity[boneIndex] += acceleration * deltaTime;
                         rotation[boneIndex] += velocity[boneIndex] * Time.deltaTime;
                         rotation[boneIndex] = Vector3.ClampMagnitude(rotation[boneIndex], 180);
-                        if (useOffset) oldTipPosition[boneIndex] = boneTips[boneIndex].position;
+                        if (useOffset)
+                        {
+                            oldTipPosition[boneIndex] = boneTips[boneIndex].position;
+                        }
                     }
+                }
                 else
-                    Debug.LogError("finger mass is zero");
+                {
+                    Debug.LogError("<b>[SteamVR Interaction]</b> finger mass is zero");
+                }
             }
 
             public void ApplyTransforms()
             {
-                for (var i = 0; i < bones.Length; i++)
+                for (int i = 0; i < bones.Length; i++)
                 {
                     bones[i].localRotation = startRot[i];
                     bones[i].Rotate(rotation[i], Space.Self);
@@ -204,11 +197,36 @@ namespace Valve.VR.InteractionSystem.Sample
 
             private Vector3 PowVector(Vector3 vector, float power)
             {
-                var sign = new Vector3(Mathf.Sign(vector.x), Mathf.Sign(vector.y), Mathf.Sign(vector.z));
+                Vector3 sign = new Vector3(Mathf.Sign(vector.x), Mathf.Sign(vector.y), Mathf.Sign(vector.z));
                 vector.x = Mathf.Pow(Mathf.Abs(vector.x), power) * sign.x;
                 vector.y = Mathf.Pow(Mathf.Abs(vector.y), power) * sign.y;
                 vector.z = Mathf.Pow(Mathf.Abs(vector.z), power) * sign.z;
                 return vector;
+            }
+        }
+
+        public Finger[] fingers;
+
+        public Vector3 constforce;
+
+        private void Start()
+        {
+            for (int fingerIndex = 0; fingerIndex < fingers.Length; fingerIndex++)
+            {
+                fingers[fingerIndex].Init();
+                fingers[fingerIndex].flexAngle = fingerFlexAngle;
+                fingers[fingerIndex].squeezyAction = squeezyAction;
+                fingers[fingerIndex].inputSource = inputSource;
+            }
+        }
+
+        private void Update()
+        {
+            for (int fingerIndex = 0; fingerIndex < fingers.Length; fingerIndex++)
+            {
+                fingers[fingerIndex].ApplyForce(constforce);
+                fingers[fingerIndex].UpdateFinger(Time.deltaTime);
+                fingers[fingerIndex].ApplyTransforms();
             }
         }
     }

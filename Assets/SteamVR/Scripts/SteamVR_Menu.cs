@@ -4,37 +4,33 @@
 //
 //=============================================================================
 
-using System;
 using UnityEngine;
+using Valve.VR;
 
 namespace Valve.VR
 {
     public class SteamVR_Menu : MonoBehaviour
     {
         public Texture cursor, background, logo;
-        private float distance;
         public float logoHeight, menuOffset;
 
-        private SteamVR_Overlay overlay;
-        private Camera overlayCam;
-
-        private CursorLockMode savedCursorLockState;
-        private bool savedCursorVisible;
-
         public Vector2 scaleLimits = new Vector2(0.1f, 5.0f);
-
-        private string scaleLimitX, scaleLimitY, scaleRateText;
         public float scaleRate = 0.5f;
-        private Vector4 uvOffset;
 
-        public RenderTexture texture
-        {
-            get { return overlay ? overlay.texture as RenderTexture : null; }
-        }
+        SteamVR_Overlay overlay;
+        Camera overlayCam;
+        Vector4 uvOffset;
+        float distance;
 
+        public RenderTexture texture { get { return overlay ? overlay.texture as RenderTexture : null; } }
         public float scale { get; private set; }
 
-        private void Awake()
+        string scaleLimitX, scaleLimitY, scaleRateText;
+
+        CursorLockMode savedCursorLockState;
+        bool savedCursorVisible;
+
+        void Awake()
         {
             scaleLimitX = string.Format("{0:N1}", scaleLimits.x);
             scaleLimitY = string.Format("{0:N1}", scaleLimits.y);
@@ -48,7 +44,7 @@ namespace Valve.VR
             }
         }
 
-        private void OnGUI()
+        void OnGUI()
         {
             if (overlay == null)
                 return;
@@ -67,22 +63,23 @@ namespace Valve.VR
             if (Screen.width < texture.width)
             {
                 area.width = Screen.width;
-                overlay.uvOffset.x = -(float) (texture.width - Screen.width) / (2 * texture.width);
+                overlay.uvOffset.x = -(float)(texture.width - Screen.width) / (2 * texture.width);
             }
-
             if (Screen.height < texture.height)
             {
                 area.height = Screen.height;
-                overlay.uvOffset.y = (float) (texture.height - Screen.height) / (2 * texture.height);
+                overlay.uvOffset.y = (float)(texture.height - Screen.height) / (2 * texture.height);
             }
 
             GUILayout.BeginArea(area);
 
             if (background != null)
+            {
                 GUI.DrawTexture(new Rect(
                     (area.width - background.width) / 2,
                     (area.height - background.height) / 2,
                     background.width, background.height), background);
+            }
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -96,39 +93,48 @@ namespace Valve.VR
 
             GUILayout.Space(menuOffset);
 
-            var bHideMenu = GUILayout.Button("[Esc] - Close menu");
+            bool bHideMenu = GUILayout.Button("[Esc] - Close menu");
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(string.Format("Scale: {0:N4}", scale));
             {
                 var result = GUILayout.HorizontalSlider(scale, scaleLimits.x, scaleLimits.y);
-                if (result != scale) SetScale(result);
+                if (result != scale)
+                {
+                    SetScale(result);
+                }
             }
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Scale limits:");
+            GUILayout.Label(string.Format("Scale limits:"));
             {
                 var result = GUILayout.TextField(scaleLimitX);
                 if (result != scaleLimitX)
+                {
                     if (float.TryParse(result, out scaleLimits.x))
                         scaleLimitX = result;
+                }
             }
             {
                 var result = GUILayout.TextField(scaleLimitY);
                 if (result != scaleLimitY)
+                {
                     if (float.TryParse(result, out scaleLimits.y))
                         scaleLimitY = result;
+                }
             }
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Scale rate:");
+            GUILayout.Label(string.Format("Scale rate:"));
             {
                 var result = GUILayout.TextField(scaleRateText);
                 if (result != scaleRateText)
+                {
                     if (float.TryParse(result, out scaleRate))
                         scaleRateText = result;
+                }
             }
             GUILayout.EndHorizontal();
 
@@ -139,12 +145,15 @@ namespace Valve.VR
                 GUILayout.BeginHorizontal();
                 {
                     var t = SteamVR_Camera.sceneResolutionScale;
-                    var w = (int) (vr.sceneWidth * t);
-                    var h = (int) (vr.sceneHeight * t);
-                    var pct = (int) (100.0f * t);
+                    int w = (int)(vr.sceneWidth * t);
+                    int h = (int)(vr.sceneHeight * t);
+                    int pct = (int)(100.0f * t);
                     GUILayout.Label(string.Format("Scene quality: {0}x{1} ({2}%)", w, h, pct));
                     var result = Mathf.RoundToInt(GUILayout.HorizontalSlider(pct, 50, 200));
-                    if (result != pct) SteamVR_Camera.sceneResolutionScale = result / 100.0f;
+                    if (result != pct)
+                    {
+                        SteamVR_Camera.sceneResolutionScale = (float)result / 100.0f;
+                    }
                 }
                 GUILayout.EndHorizontal();
             }
@@ -191,8 +200,11 @@ namespace Valve.VR
 #endif
             GUILayout.Space(menuOffset);
 
-            var env = Environment.GetEnvironmentVariable("VR_OVERRIDE");
-            if (env != null) GUILayout.Label("VR_OVERRIDE=" + env);
+            var env = System.Environment.GetEnvironmentVariable("VR_OVERRIDE");
+            if (env != null)
+            {
+                GUILayout.Label("VR_OVERRIDE=" + env);
+            }
 
             GUILayout.Label("Graphics device: " + SystemInfo.graphicsDeviceVersion);
 
@@ -224,7 +236,7 @@ namespace Valve.VR
             var texture = overlay.texture as RenderTexture;
             if (texture == null)
             {
-                Debug.LogError("Menu requires overlay texture to be a render texture.");
+                Debug.LogError("<b>[SteamVR]</b> Menu requires overlay texture to be a render texture.");
                 return;
             }
 
@@ -239,14 +251,16 @@ namespace Valve.VR
 
             // If an existing camera is rendering into the overlay texture, we need
             // to temporarily disable it to keep it from clearing the texture on us.
-            var cameras = FindObjectsOfType(typeof(Camera)) as Camera[];
+            var cameras = Object.FindObjectsOfType(typeof(Camera)) as Camera[];
             foreach (var cam in cameras)
+            {
                 if (cam.enabled && cam.targetTexture == texture)
                 {
                     overlayCam = cam;
                     overlayCam.enabled = false;
                     break;
                 }
+            }
 
             var tracker = SteamVR_Render.Top();
             if (tracker != null)
@@ -268,14 +282,18 @@ namespace Valve.VR
             }
         }
 
-        private void Update()
+        void Update()
         {
             if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Joystick1Button7))
             {
                 if (overlay == null)
+                {
                     ShowMenu();
+                }
                 else
+                {
                     HideMenu();
+                }
             }
             else if (Input.GetKeyDown(KeyCode.Home))
             {
@@ -291,7 +309,7 @@ namespace Valve.VR
             }
         }
 
-        private void SetScale(float scale)
+        void SetScale(float scale)
         {
             this.scale = scale;
 
@@ -300,13 +318,13 @@ namespace Valve.VR
                 tracker.origin.localScale = new Vector3(scale, scale, scale);
         }
 
-        private void SaveCursorState()
+        void SaveCursorState()
         {
             savedCursorVisible = Cursor.visible;
             savedCursorLockState = Cursor.lockState;
         }
 
-        private void RestoreCursorState()
+        void RestoreCursorState()
         {
             Cursor.visible = savedCursorVisible;
             Cursor.lockState = savedCursorLockState;

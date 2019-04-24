@@ -1,25 +1,28 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
 
 namespace Valve.VR.InteractionSystem.Sample
 {
     public class LockToPoint : MonoBehaviour
     {
+        public Transform snapTo;
         private Rigidbody body;
+        public float snapTime = 2;
 
         private float dropTimer;
         private Interactable interactable;
-        public float snapTime = 2;
-        public Transform snapTo;
-
+        
         private void Start()
         {
             interactable = GetComponent<Interactable>();
             body = GetComponent<Rigidbody>();
         }
-
+        
         private void FixedUpdate()
         {
-            var used = false;
+            bool used = false;
             if (interactable != null)
                 used = interactable.attachedToHand;
 
@@ -42,15 +45,14 @@ namespace Valve.VR.InteractionSystem.Sample
                 }
                 else
                 {
-                    var t = Mathf.Pow(35, dropTimer);
+                    float t = Mathf.Pow(35, dropTimer);
 
                     body.velocity = Vector3.Lerp(body.velocity, Vector3.zero, Time.fixedDeltaTime * 4);
                     if (body.useGravity)
                         body.AddForce(-Physics.gravity);
 
                     transform.position = Vector3.Lerp(transform.position, snapTo.position, Time.fixedDeltaTime * t * 3);
-                    transform.rotation =
-                        Quaternion.Slerp(transform.rotation, snapTo.rotation, Time.fixedDeltaTime * t * 2);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, snapTo.rotation, Time.fixedDeltaTime * t * 2);
                 }
             }
         }

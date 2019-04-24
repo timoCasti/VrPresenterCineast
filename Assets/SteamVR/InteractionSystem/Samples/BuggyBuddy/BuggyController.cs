@@ -1,61 +1,57 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Valve.VR;
+using Valve.VR.InteractionSystem;
 
 namespace Valve.VR.InteractionSystem.Sample
 {
     public class BuggyController : MonoBehaviour
     {
-        [SteamVR_DefaultAction("Brake", "buggy")]
-        public SteamVR_Action_Boolean a_brake;
+        public Transform modelJoystick;
+        public float joystickRot = 20;
 
-        [SteamVR_DefaultAction("Reset", "buggy")]
-        public SteamVR_Action_Boolean a_reset;
-
-        [SteamVR_DefaultAction("Steering", "buggy")]
-        public SteamVR_Action_Vector2 a_steering;
-
-        [SteamVR_DefaultAction("Throttle", "buggy")]
-        public SteamVR_Action_Single a_trigger;
-
-        [SteamVR_DefaultActionSet("buggy")] public SteamVR_ActionSet actionSet;
+        public Transform modelTrigger;
+        public float triggerRot = 20;
 
         public BuggyBuddy buggy;
 
         public Transform buttonBrake;
         public Transform buttonReset;
 
-        private float buzztimer;
-
-        private Vector3 initialScale;
-
-        private Interactable interactable;
-
-        private Quaternion joySRot;
-        public float joystickRot = 20;
-        public Transform modelJoystick;
-
-        public Transform modelTrigger;
-
-        private Coroutine resettingRoutine;
-
-        public Transform resetToPoint;
-        public float triggerRot = 20;
-
-        private Quaternion trigSRot;
-
         //ui stuff
 
         public Canvas ui_Canvas;
-
-        public Vector2 ui_fillAngles;
         public Image ui_rpm;
         public Image ui_speed;
         public RectTransform ui_steer;
 
         public float ui_steerangle;
 
+        public Vector2 ui_fillAngles;
+
+        public Transform resetToPoint;
+        
+        public SteamVR_Action_Vector2 actionSteering = SteamVR_Input.GetAction<SteamVR_Action_Vector2>("buggy", "Steering");
+        
+        public SteamVR_Action_Single actionThrottle = SteamVR_Input.GetAction<SteamVR_Action_Single>("buggy", "Throttle");
+        
+        public SteamVR_Action_Boolean actionBrake = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("buggy", "Brake");
+        
+        public SteamVR_Action_Boolean actionReset = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("buggy", "Reset");
+
         private float usteer;
+
+        private Interactable interactable;
+
+        private Quaternion trigSRot;
+
+        private Quaternion joySRot;
+
+        private Coroutine resettingRoutine;
+
+        private Vector3 initialScale;
 
         private void Start()
         {
@@ -63,7 +59,6 @@ namespace Valve.VR.InteractionSystem.Sample
             trigSRot = modelTrigger.localRotation;
 
             interactable = GetComponent<Interactable>();
-            interactable.activateActionSetOnAttach = actionSet;
 
             StartCoroutine(DoBuzz());
             buggy.controllerReference = transform;
@@ -72,30 +67,33 @@ namespace Valve.VR.InteractionSystem.Sample
 
         private void Update()
         {
-            var steer = Vector2.zero;
+            Vector2 steer = Vector2.zero;
             float throttle = 0;
             float brake = 0;
 
-            var reset = false;
+            bool reset = false;
 
-            var b_brake = false;
-            var b_reset = false;
+            bool b_brake = false;
+            bool b_reset = false;
 
 
             if (interactable.attachedToHand)
             {
-                var hand = interactable.attachedToHand.handType;
+                SteamVR_Input_Sources hand = interactable.attachedToHand.handType;
 
-                steer = a_steering.GetAxis(hand);
+                steer = actionSteering.GetAxis(hand);
 
-                throttle = a_trigger.GetAxis(hand);
-                b_brake = a_brake.GetState(hand);
-                b_reset = a_reset.GetState(hand);
+                throttle = actionThrottle.GetAxis(hand);
+                b_brake = actionBrake.GetState(hand);
+                b_reset = actionReset.GetState(hand);
                 brake = b_brake ? 1 : 0;
-                reset = a_reset.GetStateDown(hand);
+                reset = actionReset.GetStateDown(hand);
             }
 
-            if (reset && resettingRoutine == null) resettingRoutine = StartCoroutine(DoReset());
+            if (reset && resettingRoutine == null)
+            {
+                resettingRoutine = StartCoroutine(DoReset());
+            }
 
             if (ui_Canvas != null)
             {
@@ -103,11 +101,10 @@ namespace Valve.VR.InteractionSystem.Sample
 
                 usteer = Mathf.Lerp(usteer, steer.x, Time.deltaTime * 9);
                 ui_steer.localEulerAngles = Vector3.forward * usteer * -ui_steerangle;
-                ui_rpm.fillAmount = Mathf.Lerp(ui_rpm.fillAmount,
-                    Mathf.Lerp(ui_fillAngles.x, ui_fillAngles.y, throttle), Time.deltaTime * 4);
+                ui_rpm.fillAmount = Mathf.Lerp(ui_rpm.fillAmount, Mathf.Lerp(ui_fillAngles.x, ui_fillAngles.y, throttle), Time.deltaTime * 4);
                 float speedLim = 40;
-                ui_speed.fillAmount =
-                    Mathf.Lerp(ui_fillAngles.x, ui_fillAngles.y, 1 - Mathf.Exp(-buggy.speed / speedLim));
+                ui_speed.fillAmount = Mathf.Lerp(ui_fillAngles.x, ui_fillAngles.y, 1 - (Mathf.Exp(-buggy.speed / speedLim)));
+
             }
 
             modelJoystick.localRotation = joySRot;
@@ -137,9 +134,9 @@ namespace Valve.VR.InteractionSystem.Sample
 
         private IEnumerator DoReset()
         {
-            var startTime = Time.time;
-            var overTime = 1f;
-            var endTime = startTime + overTime;
+            float startTime = Time.time;
+            float overTime = 1f;
+            float endTime = startTime + overTime;
 
             buggy.transform.position = resetToPoint.transform.position;
             buggy.transform.rotation = resetToPoint.transform.rotation;
@@ -147,8 +144,7 @@ namespace Valve.VR.InteractionSystem.Sample
 
             while (Time.time < endTime)
             {
-                buggy.transform.localScale =
-                    Vector3.Lerp(buggy.transform.localScale, initialScale, Time.deltaTime * 5f);
+                buggy.transform.localScale = Vector3.Lerp(buggy.transform.localScale, initialScale, Time.deltaTime * 5f);
                 yield return null;
             }
 
@@ -157,6 +153,7 @@ namespace Valve.VR.InteractionSystem.Sample
             resettingRoutine = null;
         }
 
+        private float buzztimer;
         private IEnumerator DoBuzz()
         {
             while (true)
@@ -169,8 +166,9 @@ namespace Valve.VR.InteractionSystem.Sample
 
                 buzztimer = 0;
                 if (interactable.attachedToHand)
-                    interactable.attachedToHand.TriggerHapticPulse(
-                        (ushort) Mathf.RoundToInt(300 * Mathf.Lerp(1.0f, 0.6f, buggy.mvol)));
+                {
+                    interactable.attachedToHand.TriggerHapticPulse((ushort)Mathf.RoundToInt(300 * Mathf.Lerp(1.0f, 0.6f, buggy.mvol)));
+                }
             }
         }
     }

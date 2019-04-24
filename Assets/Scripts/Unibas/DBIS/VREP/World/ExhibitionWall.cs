@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using DefaultNamespace;
+using InGamePaint;
 using Unibas.DBIS.DynamicModelling.Models;
 using UnityEngine;
 
@@ -52,6 +53,12 @@ namespace World
                 del = GameObject.Find("Anchor (" + i + ")");
                 GameObject.Destroy(del);
             }
+            
+            // for the canvas atm
+            del = GameObject.Find("Displayal (1000)");
+            GameObject.Destroy(del);
+            del = GameObject.Find("Anchor (1000)");
+            GameObject.Destroy(del);
        
 
         }
@@ -84,6 +91,19 @@ namespace World
                 var rot = Quaternion.Euler(90, 0, 180);
                 displayal.transform.localRotation = rot; // Because prefab is messed up
 
+                //Debug.Log("NAMES:  " + displayal.name);
+                if (!displayal.name.Equals("Displayal (Masterpiece)")) {
+                    Destroy(displayal.transform.Find("MyCanvas").gameObject);
+                    //Debug.Log("I GOT DESTROYED");
+                }
+
+                else {
+                    Debug.Log("I GOT NOT DESTROYED");
+                }
+
+                
+
+                //displayal.transform.Find("Masterpiece").gameObject.AddComponent<Paintable>();
 
                 /*if(!VREPController.Instance.Settings.SpotsEnabled || !e.light){	
                   displayal.transform.Find("Directional light").gameObject.SetActive(false);
@@ -93,6 +113,10 @@ namespace World
                 disp.SetExhibitModel(e);
                 disp.OriginalPosition = pos;
                 disp.OriginalRotation = rot;
+                
+                //var can=displayal.transform.Find("MyCanvas");
+                
+                //Debug.Log("My canvas position:  " + can.name);
                 
                 // Make the Boxcollider trigger in Displayal
                 disp.GetComponent<BoxCollider>().isTrigger = true;

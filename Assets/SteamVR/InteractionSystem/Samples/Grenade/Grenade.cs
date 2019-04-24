@@ -1,19 +1,20 @@
 ﻿using UnityEngine;
+using System.Collections;
 
-namespace Valve.VR.InteractionSystem
+namespace Valve.VR.InteractionSystem.Sample
 {
     public class Grenade : MonoBehaviour
     {
-        public int explodeCount = 10;
         public GameObject explodePartPrefab;
-
-        private Interactable interactable;
+        public int explodeCount = 10;
 
         public float minMagnitudeToExplode = 1f;
 
+        private Interactable interactable;
+
         private void Start()
         {
-            interactable = GetComponent<Interactable>();
+            interactable = this.GetComponent<Interactable>();
         }
 
         private void OnCollisionEnter(Collision collision)
@@ -23,14 +24,13 @@ namespace Valve.VR.InteractionSystem
 
             if (collision.impulse.magnitude > minMagnitudeToExplode)
             {
-                for (var explodeIndex = 0; explodeIndex < explodeCount; explodeIndex++)
+                for (int explodeIndex = 0; explodeIndex < explodeCount; explodeIndex++)
                 {
-                    var explodePart = Instantiate(explodePartPrefab, transform.position, transform.rotation);
-                    explodePart.GetComponentInChildren<MeshRenderer>().material
-                        .SetColor("_TintColor", Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
+                    GameObject explodePart = (GameObject)GameObject.Instantiate(explodePartPrefab, this.transform.position, this.transform.rotation);
+                    explodePart.GetComponentInChildren<MeshRenderer>().material.SetColor("_TintColor", Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
                 }
 
-                Destroy(gameObject);
+                Destroy(this.gameObject);
             }
         }
     }

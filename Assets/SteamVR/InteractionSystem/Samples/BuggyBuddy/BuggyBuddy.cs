@@ -1,70 +1,72 @@
 ﻿using UnityEngine;
+using System;
+using System.Collections;
+
 
 namespace Valve.VR.InteractionSystem.Sample
 {
     public class BuggyBuddy : MonoBehaviour
     {
-        public AudioSource au_motor;
 
-        public AudioSource au_skid;
-
-        [HideInInspector] public Rigidbody body;
-
-        [Tooltip("Maximum brake torque applied to the driving wheels")]
-        public float brakeTorque = 30000f;
-
-        public Transform centerOfMass;
-
-        [HideInInspector] public Transform controllerReference;
-
-        [Tooltip("The vehicle's speed when the physics engine can use different amount of sub-steps (in m/s).")]
-        public float criticalSpeed = 5f;
-
-        [HideInInspector] public float handBrake;
-
-        public Vector3 localGravity;
-
-        private WheelCollider[] m_Wheels;
+        public Transform turret;
+        float turretRot;
 
 
         [Tooltip("Maximum steering angle of the wheels")]
         public float maxAngle = 30f;
-
+        [Tooltip("Maximum Turning torque")]
+        public float maxTurnTorque = 30f;
         [Tooltip("Maximum torque applied to the driving wheels")]
         public float maxTorque = 300f;
+        [Tooltip("Maximum brake torque applied to the driving wheels")]
+        public float brakeTorque = 30000f;
+        [Tooltip("If you need the visual wheels to be attached automatically, drag the wheel shape here.")]
+        public GameObject[] wheelRenders;
 
-        [Tooltip("Maximum Turning torque")] public float maxTurnTorque = 30f;
+        [Tooltip("The vehicle's speed when the physics engine can use different amount of sub-steps (in m/s).")]
+        public float criticalSpeed = 5f;
+        [Tooltip("Simulation sub-steps when the speed is above critical.")]
+        public int stepsBelow = 5;
+        [Tooltip("Simulation sub-steps when the speed is below critical.")]
+        public int stepsAbove = 1;
 
-        [HideInInspector] public float mvol;
+        private WheelCollider[] m_Wheels;
 
-        public float rapidfireTime;
+        public AudioSource au_motor;
+        [HideInInspector]
+        public float mvol;
+
+        public AudioSource au_skid;
+        float svol;
+
+        public WheelDust skidsample;
+        float skidSpeed = 3;
+
+        public Vector3 localGravity;
+
+        [HideInInspector]
+        public Rigidbody body;
+
+        public float rapidfireTime = 0;
+
 
 
         private float shootTimer;
 
-        public WheelDust skidsample;
-        private readonly float skidSpeed = 3;
+        [HideInInspector]
+        public Vector2 steer;
+        [HideInInspector]
+        public float throttle;
+        [HideInInspector]
+        public float handBrake;
+        [HideInInspector]
+        public Transform controllerReference;
 
 
-        [HideInInspector] public float speed;
+        [HideInInspector]
+        public float speed;
 
-        [HideInInspector] public Vector2 steer;
-
-        [Tooltip("Simulation sub-steps when the speed is below critical.")]
-        public int stepsAbove = 1;
-
-        [Tooltip("Simulation sub-steps when the speed is above critical.")]
-        public int stepsBelow = 5;
-
-        private float svol;
-
-        [HideInInspector] public float throttle;
-
-        public Transform turret;
-        private float turretRot;
-
-        [Tooltip("If you need the visual wheels to be attached automatically, drag the wheel shape here.")]
-        public GameObject[] wheelRenders;
+        public Transform centerOfMass;
 
 
         private void Start()
@@ -72,8 +74,7 @@ namespace Valve.VR.InteractionSystem.Sample
             body = GetComponent<Rigidbody>();
             m_Wheels = GetComponentsInChildren<WheelCollider>();
 
-            body.centerOfMass = body.transform.InverseTransformPoint(centerOfMass.position) *
-                                body.transform.lossyScale.x;
+            body.centerOfMass = body.transform.InverseTransformPoint(centerOfMass.position) * body.transform.lossyScale.x;
         }
 
         /*
@@ -121,15 +122,15 @@ namespace Valve.VR.InteractionSystem.Sample
             //driving input
             //float forward = maxTorque * move.magnitude;
 
-            var forward = maxTorque * throttle;
+            float forward = maxTorque * throttle;
             if (steer.y < -0.5f)
                 forward *= -1;
 
-            var angle = maxAngle * steer.x;
+            float angle = maxAngle * steer.x;
 
             speed = transform.InverseTransformVector(body.velocity).z;
 
-            var forw = Mathf.Abs(speed);
+            float forw = Mathf.Abs(speed);
 
 
             angle /= 1 + forw / 20;
@@ -139,20 +140,20 @@ namespace Valve.VR.InteractionSystem.Sample
 
             //float forward = maxTorque * throttle; not fun lawrence steering
 
-            var fVol = Mathf.Abs(forward);
-            mvol = Mathf.Lerp(mvol,
-                Mathf.Pow(fVol / maxTorque, 0.8f) * Mathf.Lerp(0.4f, 1.0f, Mathf.Abs(m_Wheels[2].rpm) / 200) *
-                Mathf.Lerp(1.0f, 0.5f, handBrake), Time.deltaTime * 9);
+            float fVol = Mathf.Abs(forward);
+            mvol = Mathf.Lerp(mvol, Mathf.Pow((fVol / maxTorque), 0.8f) * Mathf.Lerp(0.4f, 1.0f, (Mathf.Abs(m_Wheels[2].rpm) / 200)) * Mathf.Lerp(1.0f, 0.5f, handBrake), Time.deltaTime * 9);
 
             au_motor.volume = Mathf.Clamp01(mvol);
-            var motorPitch = Mathf.Lerp(0.8f, 1.0f, mvol);
+            float motorPitch = Mathf.Lerp(0.8f, 1.0f, mvol);
             au_motor.pitch = Mathf.Clamp01(motorPitch);
 
             svol = Mathf.Lerp(svol, skidsample.amt / skidSpeed, Time.deltaTime * 9);
 
             au_skid.volume = Mathf.Clamp01(svol);
-            var skidPitch = Mathf.Lerp(0.9f, 1.0f, svol);
+            float skidPitch = Mathf.Lerp(0.9f, 1.0f, svol);
             au_skid.pitch = Mathf.Clamp01(skidPitch);
+
+
 
 
             //float forward = maxTorque * Input.GetAxis("Vertical");
@@ -160,9 +161,10 @@ namespace Valve.VR.InteractionSystem.Sample
             //bool stopped = Mathf.Abs(transform.InverseTransformDirection(GetComponent<Rigidbody>().velocity).z) < 1.0f;
 
 
-            for (var i = 0; i < wheelRenders.Length; i++)
+
+            for (int i = 0; i < wheelRenders.Length; i++)
             {
-                var wheel = m_Wheels[i];
+                WheelCollider wheel = m_Wheels[i];
 
 
                 if (wheel.transform.localPosition.z > 0)
@@ -176,6 +178,7 @@ namespace Valve.VR.InteractionSystem.Sample
 
                 if (wheel.transform.localPosition.z < 0) // back wheels
                 {
+
                 }
 
                 // wheel.brakeTorque = Mathf.Lerp(Mathf.Abs(forward) < 0.1f ? 1 : 0, brakeTorque, handBrake);
@@ -184,11 +187,13 @@ namespace Valve.VR.InteractionSystem.Sample
 
                 if (wheel.transform.localPosition.x < 0) // left wheels
                 {
+
                 }
 
                 if (wheel.transform.localPosition.x >= 0) // right wheels
                 {
                 }
+
 
 
                 // Update visual wheels if they exist, and the colliders are enabled
@@ -199,7 +204,7 @@ namespace Valve.VR.InteractionSystem.Sample
                     wheel.GetWorldPose(out p, out q);
 
 
-                    var shapeTransform = wheelRenders[i].transform;
+                    Transform shapeTransform = wheelRenders[i].transform;
                     shapeTransform.position = p;
                     shapeTransform.rotation = q;
                 }
@@ -207,6 +212,7 @@ namespace Valve.VR.InteractionSystem.Sample
 
 
             steer = Vector2.Lerp(steer, Vector2.zero, Time.deltaTime * 4);
+
         }
 
         private void FixedUpdate()
@@ -222,10 +228,10 @@ namespace Valve.VR.InteractionSystem.Sample
                 return 0f;
 
             // Create a float to store the angle between the facing of the enemy and the direction it's travelling.
-            var angle = Vector3.Angle(fromVector, toVector);
+            float angle = Vector3.Angle(fromVector, toVector);
 
             // Find the cross product of the two vectors (this will point up if the velocity is to the right of forward).
-            var normal = Vector3.Cross(fromVector, toVector);
+            Vector3 normal = Vector3.Cross(fromVector, toVector);
 
             // The dot product of the normal with the upVector will be positive if they point in the same direction.
             angle *= Mathf.Sign(Vector3.Dot(normal, upVector));

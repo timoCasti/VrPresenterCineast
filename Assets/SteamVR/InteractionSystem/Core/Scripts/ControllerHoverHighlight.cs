@@ -5,16 +5,17 @@
 //=============================================================================
 
 using UnityEngine;
+using System.Collections;
 
 namespace Valve.VR.InteractionSystem
 {
     //-------------------------------------------------------------------------
     public class ControllerHoverHighlight : MonoBehaviour
     {
+        public Material highLightMaterial;
         public bool fireHapticsOnHightlight = true;
 
         protected Hand hand;
-        public Material highLightMaterial;
 
         protected RenderModel renderModel;
 
@@ -27,8 +28,8 @@ namespace Valve.VR.InteractionSystem
 
         protected void OnHandInitialized(int deviceIndex)
         {
-            var renderModelGameObject = Instantiate(hand.renderModelPrefab);
-            renderModelGameObject.transform.parent = transform;
+            GameObject renderModelGameObject = GameObject.Instantiate(hand.renderModelPrefab);
+            renderModelGameObject.transform.parent = this.transform;
             renderModelGameObject.transform.localPosition = Vector3.zero;
             renderModelGameObject.transform.localRotation = Quaternion.identity;
             renderModelGameObject.transform.localScale = hand.renderModelPrefab.transform.localScale;
@@ -54,9 +55,15 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         protected void OnParentHandHoverBegin(Interactable other)
         {
-            if (!isActiveAndEnabled) return;
+            if (!this.isActiveAndEnabled)
+            {
+                return;
+            }
 
-            if (other.transform.parent != transform.parent) ShowHighlight();
+            if (other.transform.parent != transform.parent)
+            {
+                ShowHighlight();
+            }
         }
 
 
@@ -70,10 +77,15 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         private void OnParentHandInputFocusAcquired()
         {
-            if (!isActiveAndEnabled) return;
+            if (!this.isActiveAndEnabled)
+            {
+                return;
+            }
 
             if (hand.hoveringInteractable && hand.hoveringInteractable.transform.parent != transform.parent)
+            {
                 ShowHighlight();
+            }
         }
 
 
@@ -87,9 +99,15 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         public void ShowHighlight()
         {
-            if (renderModel == null) return;
+            if (renderModel == null)
+            {
+                return;
+            }
 
-            if (fireHapticsOnHightlight) hand.TriggerHapticPulse(500);
+            if (fireHapticsOnHightlight)
+            {
+                hand.TriggerHapticPulse(500);
+            }
 
             renderModel.Show();
         }
@@ -98,9 +116,15 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         public void HideHighlight()
         {
-            if (renderModel == null) return;
+            if (renderModel == null)
+            {
+                return;
+            }
 
-            if (fireHapticsOnHightlight) hand.TriggerHapticPulse(300);
+            if (fireHapticsOnHightlight)
+            {
+                hand.TriggerHapticPulse(300);
+            }
 
             renderModel.Hide();
         }

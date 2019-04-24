@@ -73,7 +73,7 @@ public class BuildingManager : MonoBehaviour
             {
                 var porter = tp.GetComponent<TeleportPoint>();
                 var dest = CalculateRoomPosition(r.GetNextRoom().GetRoomModel());
-                porter.destination = dest;
+               // porter.destination = dest; // do Uskommentiert wells kei destination me git
                 r.SetPrevRoom(theRooms[GetPreviousPosition(i)]);
             }
         }

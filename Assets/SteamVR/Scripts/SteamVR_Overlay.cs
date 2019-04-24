@@ -4,42 +4,41 @@
 //
 //=============================================================================
 
-using System.Runtime.InteropServices;
 using UnityEngine;
+using System.Collections;
+using Valve.VR;
 
 namespace Valve.VR
 {
     public class SteamVR_Overlay : MonoBehaviour
     {
-        [Tooltip("Opacity")] [Range(0.0f, 1.0f)]
-        public float alpha = 1.0f;
-
-        public bool antialias = true;
+        public Texture texture;
         public bool curved = true;
-        public Vector2 curvedRange = new Vector2(1, 2);
-
-        [Tooltip("Distance from surface.")] public float distance = 1.25f;
-
-        private ulong handle = OpenVR.k_ulOverlayHandleInvalid;
+        public bool antialias = true;
         public bool highquality = true;
 
-        public VROverlayInputMethod inputMethod = VROverlayInputMethod.None;
-        public Vector2 mouseScale = new Vector2(1, 1);
+        [Tooltip("Size of overlay view.")]
+        public float scale = 3.0f;
 
-        [Tooltip("Size of overlay view.")] public float scale = 3.0f;
+        [Tooltip("Distance from surface.")]
+        public float distance = 1.25f;
 
-        public Texture texture;
+        [Tooltip("Opacity"), Range(0.0f, 1.0f)]
+        public float alpha = 1.0f;
 
         public Vector4 uvOffset = new Vector4(0, 0, 1, 1);
+        public Vector2 mouseScale = new Vector2(1, 1);
+        public Vector2 curvedRange = new Vector2(1, 2);
 
-        public static SteamVR_Overlay instance { get; private set; }
+        public VROverlayInputMethod inputMethod = VROverlayInputMethod.None;
 
-        public static string key
-        {
-            get { return "unity:" + Application.companyName + "." + Application.productName; }
-        }
+        static public SteamVR_Overlay instance { get; private set; }
 
-        private void OnEnable()
+        static public string key { get { return "unity:" + Application.companyName + "." + Application.productName; } }
+
+        private ulong handle = OpenVR.k_ulOverlayHandleInvalid;
+
+        void OnEnable()
         {
             var overlay = OpenVR.Overlay;
             if (overlay != null)
@@ -47,26 +46,29 @@ namespace Valve.VR
                 var error = overlay.CreateOverlay(key, gameObject.name, ref handle);
                 if (error != EVROverlayError.None)
                 {
-                    Debug.Log(overlay.GetOverlayErrorNameFromEnum(error));
+                    Debug.Log("<b>[SteamVR]</b> " + overlay.GetOverlayErrorNameFromEnum(error));
                     enabled = false;
                     return;
                 }
             }
 
-            instance = this;
+            SteamVR_Overlay.instance = this;
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
             if (handle != OpenVR.k_ulOverlayHandleInvalid)
             {
                 var overlay = OpenVR.Overlay;
-                if (overlay != null) overlay.DestroyOverlay(handle);
+                if (overlay != null)
+                {
+                    overlay.DestroyOverlay(handle);
+                }
 
                 handle = OpenVR.k_ulOverlayHandleInvalid;
             }
 
-            instance = null;
+            SteamVR_Overlay.instance = null;
         }
 
         public void UpdateOverlay()
@@ -79,8 +81,10 @@ namespace Valve.VR
             {
                 var error = overlay.ShowOverlay(handle);
                 if (error == EVROverlayError.InvalidHandle || error == EVROverlayError.UnknownOverlay)
+                {
                     if (overlay.FindOverlay(key, ref handle) != EVROverlayError.None)
                         return;
+                }
 
                 var tex = new Texture_t();
                 tex.handle = texture.GetNativeTexturePtr();
@@ -146,8 +150,16 @@ namespace Valve.VR
             if (overlay == null)
                 return false;
 
-            var size = (uint) Marshal.SizeOf(typeof(VREvent_t));
+            var size = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(Valve.VR.VREvent_t));
             return overlay.PollNextOverlayEvent(handle, ref pEvent, size);
+        }
+
+        public struct IntersectionResults
+        {
+            public Vector3 point;
+            public Vector3 normal;
+            public Vector2 UVs;
+            public float distance;
         }
 
         public bool ComputeIntersection(Vector3 source, Vector3 direction, ref IntersectionResults results)
@@ -174,14 +186,6 @@ namespace Valve.VR
             results.UVs = new Vector2(output.vUVs.v0, output.vUVs.v1);
             results.distance = output.fDistance;
             return true;
-        }
-
-        public struct IntersectionResults
-        {
-            public Vector3 point;
-            public Vector3 normal;
-            public Vector2 UVs;
-            public float distance;
         }
     }
 }

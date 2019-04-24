@@ -10,23 +10,22 @@ namespace Valve.VR
 {
     public class SteamVR_IK : MonoBehaviour
     {
-        public float blendPct = 1.0f;
-        public Transform poleVector, upVector;
-        public Transform start, joint, end;
-
-        [HideInInspector] public Transform startXform, jointXform, endXform;
-
         public Transform target;
+        public Transform start, joint, end;
+        public Transform poleVector, upVector;
 
-        private void LateUpdate()
+        public float blendPct = 1.0f;
+
+        [HideInInspector]
+        public Transform startXform, jointXform, endXform;
+
+        void LateUpdate()
         {
             const float epsilon = 0.001f;
             if (blendPct < epsilon)
                 return;
 
-            var preUp = upVector
-                ? upVector.up
-                : Vector3.Cross(end.position - start.position, joint.position - start.position).normalized;
+            var preUp = upVector ? upVector.up : Vector3.Cross(end.position - start.position, joint.position - start.position).normalized;
 
             var targetPosition = target.position;
             var targetRotation = target.rotation;
@@ -148,15 +147,17 @@ namespace Valve.VR
                         var A = Mathf.Sqrt(p * (p - jointDist) * (p - targetDist) * (p - baseDist));
                         var height = 2.0f * A / baseDist; // distance of joint from line between root and target
 
-                        var dist = Mathf.Sqrt(jointDist * jointDist - height * height);
+                        var dist = Mathf.Sqrt((jointDist * jointDist) - (height * height));
                         var right = Vector3.Cross(up, forward); // no need to normalized - already orthonormal
 
-                        result += forward * dist + right * height;
+                        result += (forward * dist) + (right * height);
                         return true; // in range
                     }
-
-                    // move jointDist toward jointTarget
-                    result += poleVectorDir * jointDist;
+                    else
+                    {
+                        // move jointDist toward jointTarget
+                        result += poleVectorDir * jointDist;
+                    }
                 }
                 else
                 {

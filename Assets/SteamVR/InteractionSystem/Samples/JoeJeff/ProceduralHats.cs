@@ -1,5 +1,6 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
+using UnityEngine.SceneManagement;
 
 namespace Valve.VR.InteractionSystem.Sample
 {
@@ -26,10 +27,12 @@ namespace Valve.VR.InteractionSystem.Sample
                 yield return new WaitForSeconds(hatSwitchTime);
                 //delay before trying to switch
 
-                var cam = Camera.main.transform;
+                Transform cam = Camera.main.transform;
                 while (Vector3.Angle(cam.forward, transform.position - cam.position) < 90)
+                {
                     //wait for player to look away
                     yield return new WaitForSeconds(0.1f);
+                }
 
                 ChooseHat();
             }
@@ -42,7 +45,10 @@ namespace Valve.VR.InteractionSystem.Sample
 
         private void SwitchToHat(int hat)
         {
-            for (var hatIndex = 0; hatIndex < hats.Length; hatIndex++) hats[hatIndex].SetActive(hat == hatIndex);
+            for (int hatIndex = 0; hatIndex < hats.Length; hatIndex++)
+            {
+                hats[hatIndex].SetActive(hat == hatIndex);
+            }
         }
     }
 }

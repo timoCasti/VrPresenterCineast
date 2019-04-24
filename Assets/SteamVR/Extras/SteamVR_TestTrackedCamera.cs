@@ -1,21 +1,20 @@
 ﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
-
 using UnityEngine;
 
 namespace Valve.VR.Extras
 {
     public class SteamVR_TestTrackedCamera : MonoBehaviour
     {
-        public bool cropped = true;
         public Material material;
         public Transform target;
         public bool undistorted = true;
+        public bool cropped = true;
 
         private void OnEnable()
         {
             // The video stream must be symmetrically acquired and released in
             // order to properly disable the stream once there are no consumers.
-            var source = SteamVR_TrackedCamera.Source(undistorted);
+            SteamVR_TrackedCamera.VideoStreamTexture source = SteamVR_TrackedCamera.Source(undistorted);
             source.Acquire();
 
             // Auto-disable if no camera is present.
@@ -30,15 +29,18 @@ namespace Valve.VR.Extras
 
             // The video stream must be symmetrically acquired and released in
             // order to properly disable the stream once there are no consumers.
-            var source = SteamVR_TrackedCamera.Source(undistorted);
+            SteamVR_TrackedCamera.VideoStreamTexture source = SteamVR_TrackedCamera.Source(undistorted);
             source.Release();
         }
 
         private void Update()
         {
-            var source = SteamVR_TrackedCamera.Source(undistorted);
-            var texture = source.texture;
-            if (texture == null) return;
+            SteamVR_TrackedCamera.VideoStreamTexture source = SteamVR_TrackedCamera.Source(undistorted);
+            Texture2D texture = source.texture;
+            if (texture == null)
+            {
+                return;
+            }
 
             // Apply the latest texture to the material.  This must be performed
             // every frame since the underlying texture is actually part of a ring
@@ -48,18 +50,18 @@ namespace Valve.VR.Extras
             material.mainTexture = texture;
 
             // Adjust the height of the quad based on the aspect to keep the texels square.
-            var aspect = (float) texture.width / texture.height;
+            float aspect = (float)texture.width / texture.height;
 
             // The undistorted video feed has 'bad' areas near the edges where the original
             // square texture feed is stretched to undo the fisheye from the lens.
             // Therefore, you'll want to crop it to the specified frameBounds to remove this.
             if (cropped)
             {
-                var bounds = source.frameBounds;
+                VRTextureBounds_t bounds = source.frameBounds;
                 material.mainTextureOffset = new Vector2(bounds.uMin, bounds.vMin);
 
-                var du = bounds.uMax - bounds.uMin;
-                var dv = bounds.vMax - bounds.vMin;
+                float du = bounds.uMax - bounds.uMin;
+                float dv = bounds.vMax - bounds.vMin;
                 material.mainTextureScale = new Vector2(du, dv);
 
                 aspect *= Mathf.Abs(du / dv);
@@ -75,9 +77,9 @@ namespace Valve.VR.Extras
             // Apply the pose that this frame was recorded at.
             if (source.hasTracking)
             {
-                var t = source.transform;
-                target.localPosition = t.pos;
-                target.localRotation = t.rot;
+                SteamVR_Utils.RigidTransform rigidTransform = source.transform;
+                target.localPosition = rigidTransform.pos;
+                target.localRotation = rigidTransform.rot;
             }
         }
     }

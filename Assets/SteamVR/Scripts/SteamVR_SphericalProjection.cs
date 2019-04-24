@@ -11,7 +11,7 @@ namespace Valve.VR
     [ExecuteInEditMode]
     public class SteamVR_SphericalProjection : MonoBehaviour
     {
-        private static Material material;
+        static Material material;
 
         public void Set(Vector3 N,
             float phi0, float phi1, float theta0, float theta1, // in degrees
@@ -34,7 +34,7 @@ namespace Valve.VR
             material.SetFloat("_VScale", vScale);
         }
 
-        private void OnRenderImage(RenderTexture src, RenderTexture dest)
+        void OnRenderImage(RenderTexture src, RenderTexture dest)
         {
             Graphics.Blit(src, dest, material);
         }

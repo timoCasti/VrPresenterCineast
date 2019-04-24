@@ -10,32 +10,29 @@
 
 namespace Valve.VR
 {
-    public partial class SteamVR_Input
+    using System;
+    using UnityEngine;
+    
+    
+    public partial class SteamVR_Actions
     {
-        public static SteamVR_Input_ActionSet_default _default;
-
-        public static SteamVR_Input_ActionSet_platformer platformer;
-
-        public static SteamVR_Input_ActionSet_buggy buggy;
-
-        public static void Dynamic_InitializeActionSets()
+        
+        private static SteamVR_Input_ActionSet_vrtk p_vrtk;
+        
+        public static SteamVR_Input_ActionSet_vrtk vrtk
         {
-            _default.Initialize();
-            platformer.Initialize();
-            buggy.Initialize();
-        }
-
-        public static void Dynamic_InitializeInstanceActionSets()
-        {
-            _default = (SteamVR_Input_ActionSet_default) SteamVR_Input_References.GetActionSet("_default");
-            platformer = (SteamVR_Input_ActionSet_platformer) SteamVR_Input_References.GetActionSet("platformer");
-            buggy = (SteamVR_Input_ActionSet_buggy) SteamVR_Input_References.GetActionSet("buggy");
-            actionSets = new SteamVR_ActionSet[]
+            get
             {
-                _default,
-                platformer,
-                buggy
-            };
+                return SteamVR_Actions.p_vrtk.GetCopy <SteamVR_Input_ActionSet_vrtk>();
+            }
+        }
+        
+        private static void StartPreInitActionSets()
+        {
+            SteamVR_Actions.p_vrtk = ((SteamVR_Input_ActionSet_vrtk)(SteamVR_ActionSet.Create <SteamVR_Input_ActionSet_vrtk>("/actions/vrtk")));
+            Valve.VR.SteamVR_Input.actionSets = new Valve.VR.SteamVR_ActionSet[]
+            {
+                    SteamVR_Actions.vrtk};
         }
     }
 }

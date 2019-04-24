@@ -1,39 +1,37 @@
 ﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
 
-using System;
 using UnityEngine;
+using System.Collections;
+using System;
 
 namespace Valve.VR.InteractionSystem
 {
     public class RenderModel : MonoBehaviour
     {
+        public GameObject handPrefab;
+        protected GameObject handInstance;
+        protected Renderer[] handRenderers;
+        public bool displayHandByDefault = true;
+        protected SteamVR_Behaviour_Skeleton handSkeleton;
+        protected Animator handAnimator;
+
         protected string animatorParameterStateName = "AnimationState";
+        protected int handAnimatorStateId = -1;
+
+        [Space]
+
+        public GameObject controllerPrefab;
         protected GameObject controllerInstance;
-
-        [Space] public GameObject controllerPrefab;
-
         protected Renderer[] controllerRenderers;
         protected SteamVR_RenderModel controllerRenderModel;
-        protected Material delayedSetMaterial;
         public bool displayControllerByDefault = true;
-        public bool displayHandByDefault = true;
-        protected Animator handAnimator;
-        protected int handAnimatorStateId = -1;
-        protected GameObject handInstance;
-        public GameObject handPrefab;
-        protected Renderer[] handRenderers;
-        protected SteamVR_Behaviour_Skeleton handSkeleton;
+        protected Material delayedSetMaterial;
 
-        protected SteamVR_Input_Sources inputSource;
+        public event Action onControllerLoaded;
 
         protected SteamVR_Events.Action renderModelLoadedAction;
 
-        public EVRSkeletalMotionRange GetSkeletonRangeOfMotion
-        {
-            get { return handSkeleton.rangeOfMotion; }
-        }
-
-        public event Action onControllerLoaded;
+        protected SteamVR_Input_Sources inputSource;
 
         protected void Awake()
         {
@@ -48,19 +46,27 @@ namespace Valve.VR.InteractionSystem
         {
             if (handPrefab != null)
             {
-                handInstance = Instantiate(handPrefab);
-                handInstance.transform.parent = transform;
+                handInstance = GameObject.Instantiate(handPrefab);
+                handInstance.transform.parent = this.transform;
                 handInstance.transform.localPosition = Vector3.zero;
                 handInstance.transform.localRotation = Quaternion.identity;
                 handInstance.transform.localScale = handPrefab.transform.localScale;
                 handSkeleton = handInstance.GetComponent<SteamVR_Behaviour_Skeleton>();
+                handSkeleton.origin = Player.instance.trackingOriginTransform;
                 handSkeleton.updatePose = false;
+                handSkeleton.skeletonAction.onActiveChange += OnSkeletonActiveChange;
 
                 handRenderers = handInstance.GetComponentsInChildren<Renderer>();
                 if (displayHandByDefault == false)
                     SetHandVisibility(false);
 
                 handAnimator = handInstance.GetComponentInChildren<Animator>();
+
+                if (handSkeleton.skeletonAction.activeBinding == false)
+                {
+                    Debug.LogWarning("Skeleton action: " + handSkeleton.skeletonAction.GetPath() + " is not bound. Your controller may not support SteamVR Skeleton Input.");
+                    DestroyHand();
+                }
             }
         }
 
@@ -68,8 +74,8 @@ namespace Valve.VR.InteractionSystem
         {
             if (controllerPrefab != null)
             {
-                controllerInstance = Instantiate(controllerPrefab);
-                controllerInstance.transform.parent = transform;
+                controllerInstance = GameObject.Instantiate(controllerPrefab);
+                controllerInstance.transform.parent = this.transform;
                 controllerInstance.transform.localPosition = Vector3.zero;
                 controllerInstance.transform.localRotation = Quaternion.identity;
                 controllerInstance.transform.localScale = controllerPrefab.transform.localScale;
@@ -77,20 +83,11 @@ namespace Valve.VR.InteractionSystem
             }
         }
 
-        protected virtual void Update()
-        {
-            if (handSkeleton != null && handSkeleton.isActive == false)
-            {
-                handSkeleton.skeletonAction.RemoveOnActiveChangeListener(OnSkeletonActiveChange,
-                    handSkeleton.inputSource);
-                handSkeleton.skeletonAction.AddOnActiveChangeListener(OnSkeletonActiveChange,
-                    handSkeleton.inputSource); //watch for if it gets activated later
-                DestroyHand();
-            }
-        }
-
         protected virtual void DestroyHand()
         {
+            if (handSkeleton != null)
+                handSkeleton.skeletonAction.onActiveChange -= OnSkeletonActiveChange;
+
             if (handInstance != null)
             {
                 Destroy(handInstance);
@@ -101,9 +98,16 @@ namespace Valve.VR.InteractionSystem
             }
         }
 
-        protected virtual void OnSkeletonActiveChange(SteamVR_Action_In action, bool newState)
+        protected virtual void OnSkeletonActiveChange(SteamVR_Action_Skeleton changedAction, bool newState)
         {
-            if (newState) InitializeHand();
+            if (newState)
+            {
+                InitializeHand();
+            }
+            else
+            {
+                DestroyHand();
+            }
         }
 
         protected void OnEnable()
@@ -114,6 +118,16 @@ namespace Valve.VR.InteractionSystem
         protected void OnDisable()
         {
             renderModelLoadedAction.enabled = false;
+        }
+
+        protected void OnDestroy()
+        {
+            DestroyHand();
+        }
+
+        public SteamVR_Behaviour_Skeleton GetSkeleton()
+        {
+            return handSkeleton;
         }
 
         public virtual void SetInputSource(SteamVR_Input_Sources newInputSource)
@@ -140,24 +154,36 @@ namespace Valve.VR.InteractionSystem
 
         public void SetHandPosition(Vector3 newPosition)
         {
-            if (handInstance != null) handInstance.transform.position = newPosition;
+            if (handInstance != null)
+            {
+                handInstance.transform.position = newPosition;
+            }
         }
 
         public void SetHandRotation(Quaternion newRotation)
         {
-            if (handInstance != null) handInstance.transform.rotation = newRotation;
+            if (handInstance != null)
+            {
+                handInstance.transform.rotation = newRotation;
+            }
         }
 
         public Vector3 GetHandPosition()
         {
-            if (handInstance != null) return handInstance.transform.position;
+            if (handInstance != null)
+            {
+                return handInstance.transform.position;
+            }
 
             return Vector3.zero;
         }
 
         public Quaternion GetHandRotation()
         {
-            if (handInstance != null) return handInstance.transform.rotation;
+            if (handInstance != null)
+            {
+                return handInstance.transform.rotation;
+            }
 
             return Quaternion.identity;
         }
@@ -211,14 +237,18 @@ namespace Valve.VR.InteractionSystem
                 return;
             }
 
-            for (var rendererIndex = 0; rendererIndex < controllerRenderers.Length; rendererIndex++)
+            for (int rendererIndex = 0; rendererIndex < controllerRenderers.Length; rendererIndex++)
+            {
                 controllerRenderers[rendererIndex].material = material;
+            }
         }
 
         public void SetHandMaterial(Material material)
         {
-            for (var rendererIndex = 0; rendererIndex < handRenderers.Length; rendererIndex++)
+            for (int rendererIndex = 0; rendererIndex < handRenderers.Length; rendererIndex++)
+            {
                 handRenderers[rendererIndex].material = material;
+            }
         }
 
         public void SetControllerVisibility(bool state, bool permanent = false)
@@ -229,8 +259,10 @@ namespace Valve.VR.InteractionSystem
             if (controllerRenderers == null)
                 return;
 
-            for (var rendererIndex = 0; rendererIndex < controllerRenderers.Length; rendererIndex++)
+            for (int rendererIndex = 0; rendererIndex < controllerRenderers.Length; rendererIndex++)
+            {
                 controllerRenderers[rendererIndex].enabled = state;
+            }
         }
 
         public void SetHandVisibility(bool state, bool permanent = false)
@@ -241,8 +273,10 @@ namespace Valve.VR.InteractionSystem
             if (handRenderers == null)
                 return;
 
-            for (var rendererIndex = 0; rendererIndex < handRenderers.Length; rendererIndex++)
+            for (int rendererIndex = 0; rendererIndex < handRenderers.Length; rendererIndex++)
+            {
                 handRenderers[rendererIndex].enabled = state;
+            }
         }
 
         public bool IsHandVisibile()
@@ -250,9 +284,11 @@ namespace Valve.VR.InteractionSystem
             if (handRenderers == null)
                 return false;
 
-            for (var rendererIndex = 0; rendererIndex < handRenderers.Length; rendererIndex++)
+            for (int rendererIndex = 0; rendererIndex < handRenderers.Length; rendererIndex++)
+            {
                 if (handRenderers[rendererIndex].enabled)
                     return true;
+            }
 
             return false;
         }
@@ -262,23 +298,31 @@ namespace Valve.VR.InteractionSystem
             if (controllerRenderers == null)
                 return false;
 
-            for (var rendererIndex = 0; rendererIndex < controllerRenderers.Length; rendererIndex++)
+            for (int rendererIndex = 0; rendererIndex < controllerRenderers.Length; rendererIndex++)
+            {
                 if (controllerRenderers[rendererIndex].enabled)
                     return true;
+            }
 
             return false;
         }
 
         public Transform GetBone(int boneIndex)
         {
-            if (handSkeleton != null) return handSkeleton.GetBone(boneIndex);
+            if (handSkeleton != null)
+            {
+                return handSkeleton.GetBone(boneIndex);
+            }
 
             return null;
         }
 
         public Vector3 GetBonePosition(int boneIndex, bool local = false)
         {
-            if (handSkeleton != null) return handSkeleton.GetBonePosition(boneIndex, local);
+            if (handSkeleton != null)
+            {
+                return handSkeleton.GetBonePosition(boneIndex, local);
+            }
 
             return Vector3.zero;
         }
@@ -293,7 +337,10 @@ namespace Valve.VR.InteractionSystem
 
         public Quaternion GetBoneRotation(int boneIndex, bool local = false)
         {
-            if (handSkeleton != null) return handSkeleton.GetBoneRotation(boneIndex, local);
+            if (handSkeleton != null)
+            {
+                return handSkeleton.GetBoneRotation(boneIndex, local);
+            }
 
             return Quaternion.identity;
         }
@@ -301,20 +348,37 @@ namespace Valve.VR.InteractionSystem
 
         public void SetSkeletonRangeOfMotion(EVRSkeletalMotionRange newRangeOfMotion, float blendOverSeconds = 0.1f)
         {
-            if (handSkeleton != null) handSkeleton.SetRangeOfMotion(newRangeOfMotion, blendOverSeconds);
+            if (handSkeleton != null)
+            {
+                handSkeleton.SetRangeOfMotion(newRangeOfMotion, blendOverSeconds);
+            }
         }
 
-        public void SetTemporarySkeletonRangeOfMotion(SkeletalMotionRangeChange temporaryRangeOfMotionChange,
-            float blendOverSeconds = 0.1f)
+        public EVRSkeletalMotionRange GetSkeletonRangeOfMotion
+        {
+            get
+            {
+                if (handSkeleton != null)
+                    return handSkeleton.rangeOfMotion;
+                else
+                    return EVRSkeletalMotionRange.WithController;
+            }
+        }
+
+        public void SetTemporarySkeletonRangeOfMotion(SkeletalMotionRangeChange temporaryRangeOfMotionChange, float blendOverSeconds = 0.1f)
         {
             if (handSkeleton != null)
-                handSkeleton.SetTemporaryRangeOfMotion((EVRSkeletalMotionRange) temporaryRangeOfMotionChange,
-                    blendOverSeconds);
+            {
+                handSkeleton.SetTemporaryRangeOfMotion((EVRSkeletalMotionRange)temporaryRangeOfMotionChange, blendOverSeconds);
+            }
         }
 
         public void ResetTemporarySkeletonRangeOfMotion(float blendOverSeconds = 0.1f)
         {
-            if (handSkeleton != null) handSkeleton.ResetTemporaryRangeOfMotion(blendOverSeconds);
+            if (handSkeleton != null)
+            {
+                handSkeleton.ResetTemporaryRangeOfMotion(blendOverSeconds);
+            }
         }
 
         public void SetAnimationState(int stateValue)
@@ -344,16 +408,21 @@ namespace Valve.VR.InteractionSystem
         private bool CheckAnimatorInit()
         {
             if (handAnimatorStateId == -1 && handAnimator != null)
+            {
                 if (handAnimator.gameObject.activeInHierarchy && handAnimator.isInitialized)
                 {
-                    var parameters = handAnimator.parameters;
-                    for (var parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
-                        if (string.Equals(parameters[parameterIndex].name, animatorParameterStateName,
-                            StringComparison.CurrentCultureIgnoreCase))
+                    AnimatorControllerParameter[] parameters = handAnimator.parameters;
+                    for (int parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
+                    {
+                        if (string.Equals(parameters[parameterIndex].name, animatorParameterStateName, StringComparison.CurrentCultureIgnoreCase))
                             handAnimatorStateId = parameters[parameterIndex].nameHash;
+                    }
                 }
+            }
 
             return handAnimatorStateId != -1 && handAnimator != null && handAnimator.isInitialized;
         }
+
+        
     }
 }

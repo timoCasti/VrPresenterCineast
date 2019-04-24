@@ -1,14 +1,17 @@
 ﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using Valve.VR.InteractionSystem;
 
 namespace Valve.VR.InteractionSystem.Sample
 {
     public class Planting : MonoBehaviour
     {
-        public Hand hand;
         public SteamVR_Action_Boolean plantAction;
+
+        public Hand hand;
 
         public GameObject prefabToPlant;
 
@@ -16,11 +19,11 @@ namespace Valve.VR.InteractionSystem.Sample
         private void OnEnable()
         {
             if (hand == null)
-                hand = GetComponent<Hand>();
+                hand = this.GetComponent<Hand>();
 
             if (plantAction == null)
             {
-                Debug.LogError("No plant action assigned");
+                Debug.LogError("<b>[SteamVR Interaction]</b> No plant action assigned");
                 return;
             }
 
@@ -33,9 +36,12 @@ namespace Valve.VR.InteractionSystem.Sample
                 plantAction.RemoveOnChangeListener(OnPlantActionChange, hand.handType);
         }
 
-        private void OnPlantActionChange(SteamVR_Action_In actionIn)
+        private void OnPlantActionChange(SteamVR_Action_Boolean actionIn, SteamVR_Input_Sources inputSource, bool newValue)
         {
-            if (plantAction.GetStateDown(hand.handType)) Plant();
+            if (newValue)
+            {
+                Plant();
+            }
         }
 
         public void Plant()
@@ -48,10 +54,10 @@ namespace Valve.VR.InteractionSystem.Sample
             Vector3 plantPosition;
 
             RaycastHit hitInfo;
-            var hit = Physics.Raycast(hand.transform.position, Vector3.down, out hitInfo);
+            bool hit = Physics.Raycast(hand.transform.position, Vector3.down, out hitInfo);
             if (hit)
             {
-                plantPosition = hitInfo.point + Vector3.up * 0.05f;
+                plantPosition = hitInfo.point + (Vector3.up * 0.05f);
             }
             else
             {
@@ -59,29 +65,28 @@ namespace Valve.VR.InteractionSystem.Sample
                 plantPosition.y = Player.instance.transform.position.y;
             }
 
-            var planting = Instantiate(prefabToPlant);
+            GameObject planting = GameObject.Instantiate<GameObject>(prefabToPlant);
             planting.transform.position = plantPosition;
             planting.transform.rotation = Quaternion.Euler(0, Random.value * 360f, 0);
 
-            planting.GetComponentInChildren<MeshRenderer>().material
-                .SetColor("_TintColor", Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
+            planting.GetComponentInChildren<MeshRenderer>().material.SetColor("_TintColor", Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
 
-            var rigidbody = planting.GetComponent<Rigidbody>();
+            Rigidbody rigidbody = planting.GetComponent<Rigidbody>();
             if (rigidbody != null)
                 rigidbody.isKinematic = true;
 
 
-            var initialScale = Vector3.one * 0.01f;
-            var targetScale = Vector3.one * (1 + Random.value * 0.25f);
 
-            var startTime = Time.time;
-            var overTime = 0.5f;
-            var endTime = startTime + overTime;
+            Vector3 initialScale = Vector3.one * 0.01f;
+            Vector3 targetScale = Vector3.one * (1 + (Random.value * 0.25f));
+
+            float startTime = Time.time;
+            float overTime = 0.5f;
+            float endTime = startTime + overTime;
 
             while (Time.time < endTime)
             {
-                planting.transform.localScale =
-                    Vector3.Slerp(initialScale, targetScale, (Time.time - startTime) / overTime);
+                planting.transform.localScale = Vector3.Slerp(initialScale, targetScale, (Time.time - startTime) / overTime);
                 yield return null;
             }
 

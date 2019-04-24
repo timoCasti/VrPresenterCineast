@@ -1,19 +1,19 @@
 ﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
-
 using UnityEngine;
+using System.Collections;
 
 namespace Valve.VR.Extras
 {
     [RequireComponent(typeof(SteamVR_TrackedObject))]
     public class SteamVR_TestThrow : MonoBehaviour
     {
-        public Rigidbody attachPoint;
-        private FixedJoint joint;
         public GameObject prefab;
+        public Rigidbody attachPoint;
+        
+        public SteamVR_Action_Boolean spawn = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InteractUI");
 
-        [SteamVR_DefaultAction("Interact")] public SteamVR_Action_Boolean spawn;
-
-        private SteamVR_Behaviour_Pose trackedObj;
+        SteamVR_Behaviour_Pose trackedObj;
+        FixedJoint joint;
 
         private void Awake()
         {
@@ -24,7 +24,7 @@ namespace Valve.VR.Extras
         {
             if (joint == null && spawn.GetStateDown(trackedObj.inputSource))
             {
-                var go = Instantiate(prefab);
+                GameObject go = GameObject.Instantiate(prefab);
                 go.transform.position = attachPoint.transform.position;
 
                 joint = go.AddComponent<FixedJoint>();
@@ -32,18 +32,18 @@ namespace Valve.VR.Extras
             }
             else if (joint != null && spawn.GetStateUp(trackedObj.inputSource))
             {
-                var go = joint.gameObject;
-                var rigidbody = go.GetComponent<Rigidbody>();
-                DestroyImmediate(joint);
+                GameObject go = joint.gameObject;
+                Rigidbody rigidbody = go.GetComponent<Rigidbody>();
+                Object.DestroyImmediate(joint);
                 joint = null;
-                Destroy(go, 15.0f);
+                Object.Destroy(go, 15.0f);
 
                 // We should probably apply the offset between trackedObj.transform.position
                 // and device.transform.pos to insert into the physics sim at the correct
                 // location, however, we would then want to predict ahead the visual representation
                 // by the same amount we are predicting our render poses.
 
-                var origin = trackedObj.origin ? trackedObj.origin : trackedObj.transform.parent;
+                Transform origin = trackedObj.origin ? trackedObj.origin : trackedObj.transform.parent;
                 if (origin != null)
                 {
                     rigidbody.velocity = origin.TransformVector(trackedObj.GetVelocity());

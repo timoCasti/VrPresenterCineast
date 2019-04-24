@@ -5,55 +5,52 @@
 //=============================================================================
 
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Valve.VR.InteractionSystem
 {
     //-------------------------------------------------------------------------
     public class TeleportArc : MonoBehaviour
     {
+        public int segmentCount = 60;
+        public float thickness = 0.01f;
+
         [Tooltip("The amount of time in seconds to predict the motion of the projectile.")]
         public float arcDuration = 3.0f;
-
-        private bool arcInvalid;
-        private Transform arcObjectsTransfrom;
-
-        [Tooltip("The speed at which the line segments of the arc move.")]
-        public float arcSpeed = 0.2f;
-
-        private float arcTimeOffset;
-
-        //Private data
-        private LineRenderer[] lineRenderers;
-
-        public Material material;
-        private int prevSegmentCount;
-        private float prevThickness;
-        private Vector3 projectileVelocity;
-        private float scale = 1;
 
         [Tooltip("The amount of time in seconds between each segment of the projectile.")]
         public float segmentBreak = 0.025f;
 
-        public int segmentCount = 60;
+        [Tooltip("The speed at which the line segments of the arc move.")]
+        public float arcSpeed = 0.2f;
+
+        public Material material;
+
+        [HideInInspector]
+        public int traceLayerMask = 0;
+
+        //Private data
+        private LineRenderer[] lineRenderers;
+        private float arcTimeOffset = 0.0f;
+        private float prevThickness = 0.0f;
+        private int prevSegmentCount = 0;
         private bool showArc = true;
         private Vector3 startPos;
-        public float thickness = 0.01f;
-
-        [HideInInspector] public int traceLayerMask;
-
+        private Vector3 projectileVelocity;
         private bool useGravity = true;
+        private Transform arcObjectsTransfrom;
+        private bool arcInvalid = false;
+        private float scale = 1;
 
 
         //-------------------------------------------------
-        private void Start()
+        void Start()
         {
             arcTimeOffset = Time.time;
         }
 
 
         //-------------------------------------------------
-        private void Update()
+        void Update()
         {
             //scale arc to match player scale
             scale = Player.instance.transform.lossyScale.x;
@@ -66,35 +63,39 @@ namespace Valve.VR.InteractionSystem
         }
 
 
+
         //-------------------------------------------------
         private void CreateLineRendererObjects()
         {
             //Destroy any existing line renderer objects
-            if (arcObjectsTransfrom != null) Destroy(arcObjectsTransfrom.gameObject);
+            if (arcObjectsTransfrom != null)
+            {
+                Destroy(arcObjectsTransfrom.gameObject);
+            }
 
-            var arcObjectsParent = new GameObject("ArcObjects");
+            GameObject arcObjectsParent = new GameObject("ArcObjects");
             arcObjectsTransfrom = arcObjectsParent.transform;
-            arcObjectsTransfrom.SetParent(transform);
+            arcObjectsTransfrom.SetParent(this.transform);
 
             //Create new line renderer objects
             lineRenderers = new LineRenderer[segmentCount];
-            for (var i = 0; i < segmentCount; ++i)
+            for (int i = 0; i < segmentCount; ++i)
             {
-                var newObject = new GameObject("LineRenderer_" + i);
+                GameObject newObject = new GameObject("LineRenderer_" + i);
                 newObject.transform.SetParent(arcObjectsTransfrom);
 
                 lineRenderers[i] = newObject.AddComponent<LineRenderer>();
 
                 lineRenderers[i].receiveShadows = false;
-                lineRenderers[i].reflectionProbeUsage = ReflectionProbeUsage.Off;
-                lineRenderers[i].lightProbeUsage = LightProbeUsage.Off;
-                lineRenderers[i].shadowCastingMode = ShadowCastingMode.Off;
+                lineRenderers[i].reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+                lineRenderers[i].lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+                lineRenderers[i].shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 lineRenderers[i].material = material;
 #if (UNITY_5_4)
                 lineRenderers[i].SetWidth(thickness, thickness);
 #else
-                lineRenderers[i].startWidth = thickness * scale;
-                lineRenderers[i].endWidth = thickness * scale;
+				lineRenderers[i].startWidth = thickness * scale;
+				lineRenderers[i].endWidth = thickness * scale;
 #endif
                 lineRenderers[i].enabled = false;
             }
@@ -108,7 +109,10 @@ namespace Valve.VR.InteractionSystem
             projectileVelocity = velocity;
             useGravity = gravity;
 
-            if (arcInvalid && !pointerAtBadAngle) arcTimeOffset = Time.time;
+            if (arcInvalid && !pointerAtBadAngle)
+            {
+                arcTimeOffset = Time.time;
+            }
             arcInvalid = pointerAtBadAngle;
         }
 
@@ -117,7 +121,10 @@ namespace Valve.VR.InteractionSystem
         public void Show()
         {
             showArc = true;
-            if (lineRenderers == null) CreateLineRendererObjects();
+            if (lineRenderers == null)
+            {
+                CreateLineRendererObjects();
+            }
         }
 
 
@@ -125,7 +132,10 @@ namespace Valve.VR.InteractionSystem
         public void Hide()
         {
             //Hide the line segments if they were previously being shown
-            if (showArc) HideLineSegments(0, segmentCount);
+            if (showArc)
+            {
+                HideLineSegments(0, segmentCount);
+            }
             showArc = false;
         }
 
@@ -135,20 +145,20 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         public bool DrawArc(out RaycastHit hitInfo)
         {
-            var timeStep = arcDuration / segmentCount;
+            float timeStep = arcDuration / segmentCount;
 
-            var currentTimeOffset = (Time.time - arcTimeOffset) * arcSpeed;
+            float currentTimeOffset = (Time.time - arcTimeOffset) * arcSpeed;
 
             //Reset the arc time offset when it has gone beyond a segment length
-            if (currentTimeOffset > timeStep + segmentBreak)
+            if (currentTimeOffset > (timeStep + segmentBreak))
             {
                 arcTimeOffset = Time.time;
                 currentTimeOffset = 0.0f;
             }
 
-            var segmentStartTime = currentTimeOffset;
+            float segmentStartTime = currentTimeOffset;
 
-            var arcHitTime = FindProjectileCollision(out hitInfo);
+            float arcHitTime = FindProjectileCollision(out hitInfo);
 
             if (arcInvalid)
             {
@@ -162,23 +172,27 @@ namespace Valve.VR.InteractionSystem
             else
             {
                 //Draw the first segment outside the loop if needed
-                var loopStartSegment = 0;
+                int loopStartSegment = 0;
                 if (segmentStartTime > segmentBreak)
                 {
-                    var firstSegmentEndTime = currentTimeOffset - segmentBreak;
-                    if (arcHitTime < firstSegmentEndTime) firstSegmentEndTime = arcHitTime;
+                    float firstSegmentEndTime = currentTimeOffset - segmentBreak;
+                    if (arcHitTime < firstSegmentEndTime)
+                    {
+                        firstSegmentEndTime = arcHitTime;
+                    }
                     DrawArcSegment(0, 0.0f, firstSegmentEndTime);
 
                     loopStartSegment = 1;
                 }
 
-                var stopArc = false;
-                var currentSegment = 0;
+                bool stopArc = false;
+                int currentSegment = 0;
                 if (segmentStartTime < arcHitTime)
+                {
                     for (currentSegment = loopStartSegment; currentSegment < segmentCount; ++currentSegment)
                     {
                         //Clamp the segment end time to the arc duration
-                        var segmentEndTime = segmentStartTime + timeStep;
+                        float segmentEndTime = segmentStartTime + timeStep;
                         if (segmentEndTime >= arcDuration)
                         {
                             segmentEndTime = arcDuration;
@@ -196,10 +210,16 @@ namespace Valve.VR.InteractionSystem
                         segmentStartTime += timeStep + segmentBreak;
 
                         //If the previous end time or the next start time is beyond the duration then stop the arc
-                        if (stopArc || segmentStartTime >= arcDuration || segmentStartTime >= arcHitTime) break;
+                        if (stopArc || segmentStartTime >= arcDuration || segmentStartTime >= arcHitTime)
+                        {
+                            break;
+                        }
                     }
+                }
                 else
+                {
                     currentSegment--;
+                }
 
                 //Hide the rest of the line segments
                 HideLineSegments(currentSegment + 1, segmentCount);
@@ -221,13 +241,13 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         public void SetColor(Color color)
         {
-            for (var i = 0; i < segmentCount; ++i)
+            for (int i = 0; i < segmentCount; ++i)
             {
 #if (UNITY_5_4)
                 lineRenderers[i].SetColors(color, color);
 #else
-                lineRenderers[i].startColor = color;
-                lineRenderers[i].endColor = color;
+				lineRenderers[i].startColor = color;
+				lineRenderers[i].endColor = color;
 #endif
             }
         }
@@ -236,25 +256,27 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         private float FindProjectileCollision(out RaycastHit hitInfo)
         {
-            var timeStep = arcDuration / segmentCount;
-            var segmentStartTime = 0.0f;
+            float timeStep = arcDuration / segmentCount;
+            float segmentStartTime = 0.0f;
 
             hitInfo = new RaycastHit();
 
-            var segmentStartPos = GetArcPositionAtTime(segmentStartTime);
-            for (var i = 0; i < segmentCount; ++i)
+            Vector3 segmentStartPos = GetArcPositionAtTime(segmentStartTime);
+            for (int i = 0; i < segmentCount; ++i)
             {
-                var segmentEndTime = segmentStartTime + timeStep;
-                var segmentEndPos = GetArcPositionAtTime(segmentEndTime);
+                float segmentEndTime = segmentStartTime + timeStep;
+                Vector3 segmentEndPos = GetArcPositionAtTime(segmentEndTime);
 
                 if (Physics.Linecast(segmentStartPos, segmentEndPos, out hitInfo, traceLayerMask))
+                {
                     if (hitInfo.collider.GetComponent<IgnoreTeleportTrace>() == null)
                     {
                         Util.DrawCross(hitInfo.point, Color.red, 0.5f);
-                        var segmentDistance = Vector3.Distance(segmentStartPos, segmentEndPos);
-                        var hitTime = segmentStartTime + timeStep * (hitInfo.distance / segmentDistance);
+                        float segmentDistance = Vector3.Distance(segmentStartPos, segmentEndPos);
+                        float hitTime = segmentStartTime + (timeStep * (hitInfo.distance / segmentDistance));
                         return hitTime;
                     }
+                }
 
                 segmentStartTime = segmentEndTime;
                 segmentStartPos = segmentEndPos;
@@ -267,9 +289,9 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         public Vector3 GetArcPositionAtTime(float time)
         {
-            var gravity = useGravity ? Physics.gravity : Vector3.zero;
+            Vector3 gravity = useGravity ? Physics.gravity : Vector3.zero;
 
-            var arcPos = startPos + (projectileVelocity * time + 0.5f * time * time * gravity) * scale;
+            Vector3 arcPos = startPos + ((projectileVelocity * time) + (0.5f * time * time) * gravity) * scale;
             return arcPos;
         }
 
@@ -278,8 +300,12 @@ namespace Valve.VR.InteractionSystem
         private void HideLineSegments(int startSegment, int endSegment)
         {
             if (lineRenderers != null)
-                for (var i = startSegment; i < endSegment; ++i)
+            {
+                for (int i = startSegment; i < endSegment; ++i)
+                {
                     lineRenderers[i].enabled = false;
+                }
+            }
         }
     }
 }

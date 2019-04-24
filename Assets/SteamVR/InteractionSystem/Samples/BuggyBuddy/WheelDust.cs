@@ -1,27 +1,30 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Valve.VR.InteractionSystem.Sample
 {
     public class WheelDust : MonoBehaviour
     {
-        [HideInInspector] public float amt;
-
         private WheelCollider col;
+
+        public ParticleSystem p;
 
         public float EmissionMul;
 
-        private float emitTimer;
+        public float velocityMul = 2;
 
         public float maxEmission;
 
         public float minSlip;
 
-        public ParticleSystem p;
+        [HideInInspector]
+        public float amt;
 
-        [HideInInspector] public Vector3 slip;
+        [HideInInspector]
+        public Vector3 slip;
 
-        public float velocityMul = 2;
+        private float emitTimer;
 
 
         private void Start()
@@ -42,7 +45,6 @@ namespace Valve.VR.InteractionSystem.Sample
                 slip += Vector3.forward * -hit.forwardSlip;
                 //print(slip);
             }
-
             amt = slip.magnitude;
             //print(amt);
         }
@@ -54,9 +56,11 @@ namespace Valve.VR.InteractionSystem.Sample
                 while (emitTimer < 1)
                 {
                     yield return null;
-                    if (amt > minSlip) emitTimer += Mathf.Clamp(EmissionMul * amt, 0.01f, maxEmission);
+                    if (amt > minSlip)
+                    {
+                        emitTimer += Mathf.Clamp((EmissionMul * amt), 0.01f, maxEmission);
+                    }
                 }
-
                 emitTimer = 0;
                 DoEmit();
             }
@@ -67,7 +71,7 @@ namespace Valve.VR.InteractionSystem.Sample
             p.transform.rotation = Quaternion.LookRotation(transform.TransformDirection(slip));
 
 #if UNITY_2017_1_OR_NEWER
-            var mainModule = p.main;
+            ParticleSystem.MainModule mainModule = p.main;
             mainModule.startSpeed = velocityMul * amt;
 #else
             p.startSpeed = velocityMul * amt;

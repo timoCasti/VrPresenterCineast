@@ -1,43 +1,55 @@
 ﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
 
 using UnityEngine;
+using System.Collections;
+using Valve.VR.InteractionSystem;
 
 namespace Valve.VR.InteractionSystem.Sample
 {
     public class SkeletonUIOptions : MonoBehaviour
     {
+
         public void AnimateHandWithController()
         {
-            for (var handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
+            for (int handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
             {
-                var hand = Player.instance.hands[handIndex];
-                if (hand != null) hand.SetSkeletonRangeOfMotion(EVRSkeletalMotionRange.WithController);
+                Hand hand = Player.instance.hands[handIndex];
+                if (hand != null)
+                {
+                    hand.SetSkeletonRangeOfMotion(Valve.VR.EVRSkeletalMotionRange.WithController);
+                }
             }
         }
 
         public void AnimateHandWithoutController()
         {
-            for (var handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
+            for (int handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
             {
-                var hand = Player.instance.hands[handIndex];
-                if (hand != null) hand.SetSkeletonRangeOfMotion(EVRSkeletalMotionRange.WithoutController);
+                Hand hand = Player.instance.hands[handIndex];
+                if (hand != null)
+                {
+                    hand.SetSkeletonRangeOfMotion(Valve.VR.EVRSkeletalMotionRange.WithoutController);
+                }
             }
         }
 
         public void ShowController()
         {
-            for (var handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
+            for (int handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
             {
-                var hand = Player.instance.hands[handIndex];
-                if (hand != null) hand.ShowController(true);
+                Hand hand = Player.instance.hands[handIndex];
+                if (hand != null)
+                {
+                    hand.ShowController(true);
+                }
             }
         }
 
-        public void SetRenderModel(RenderModelHolder prefabs)
+        public void SetRenderModel(RenderModelChangerUI prefabs)
         {
-            for (var handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
+            for (int handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
             {
-                var hand = Player.instance.hands[handIndex];
+                Hand hand = Player.instance.hands[handIndex];
                 if (hand != null)
                 {
                     if (hand.handType == SteamVR_Input_Sources.RightHand)
@@ -50,10 +62,13 @@ namespace Valve.VR.InteractionSystem.Sample
 
         public void HideController()
         {
-            for (var handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
+            for (int handIndex = 0; handIndex < Player.instance.hands.Length; handIndex++)
             {
-                var hand = Player.instance.hands[handIndex];
-                if (hand != null) hand.HideController(true);
+                Hand hand = Player.instance.hands[handIndex];
+                if (hand != null)
+                {
+                    hand.HideController(true);
+                }
             }
         }
     }

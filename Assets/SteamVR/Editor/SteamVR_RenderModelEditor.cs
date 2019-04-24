@@ -4,22 +4,22 @@
 //
 //=============================================================================
 
-using System.Collections.Generic;
-using System.Text;
-using UnityEditor;
 using UnityEngine;
+using UnityEditor;
+using System.Text;
+using System.Collections.Generic;
 
 namespace Valve.VR
 {
-    [CustomEditor(typeof(SteamVR_RenderModel))]
-    [CanEditMultipleObjects]
+    [CustomEditor(typeof(SteamVR_RenderModel)), CanEditMultipleObjects]
     public class SteamVR_RenderModelEditor : Editor
     {
-        private static string[] renderModelNames;
-        private int renderModelIndex;
-        private SerializedProperty script, index, modelOverride, shader, verbose, createComponents, updateDynamically;
+        SerializedProperty script, index, modelOverride, shader, verbose, createComponents, updateDynamically;
 
-        private void OnEnable()
+        static string[] renderModelNames;
+        int renderModelIndex;
+
+        void OnEnable()
         {
             script = serializedObject.FindProperty("m_Script");
             index = serializedObject.FindProperty("index");
@@ -30,19 +30,26 @@ namespace Valve.VR
             updateDynamically = serializedObject.FindProperty("updateDynamically");
 
             // Load render model names if necessary.
-            if (renderModelNames == null) renderModelNames = LoadRenderModelNames();
+            if (renderModelNames == null)
+            {
+                renderModelNames = LoadRenderModelNames();
+            }
 
             // Update renderModelIndex based on current modelOverride value.
             if (modelOverride.stringValue != "")
-                for (var i = 0; i < renderModelNames.Length; i++)
+            {
+                for (int i = 0; i < renderModelNames.Length; i++)
+                {
                     if (modelOverride.stringValue == renderModelNames[i])
                     {
                         renderModelIndex = i;
                         break;
                     }
+                }
+            }
         }
 
-        private static string[] LoadRenderModelNames()
+        static string[] LoadRenderModelNames()
         {
             var results = new List<string>();
             results.Add("None");
@@ -52,7 +59,7 @@ namespace Valve.VR
                 var renderModels = holder.instance;
                 if (renderModels != null)
                 {
-                    var count = renderModels.GetRenderModelCount();
+                    uint count = renderModels.GetRenderModelCount();
                     for (uint i = 0; i < count; i++)
                     {
                         var buffer = new StringBuilder();
@@ -60,7 +67,7 @@ namespace Valve.VR
                         if (requiredSize == 0)
                             continue;
 
-                        buffer.EnsureCapacity((int) requiredSize);
+                        buffer.EnsureCapacity((int)requiredSize);
                         renderModels.GetRenderModelName(i, buffer, requiredSize);
                         results.Add(buffer.ToString());
                     }
@@ -84,9 +91,8 @@ namespace Valve.VR
             if (selected != renderModelIndex)
             {
                 renderModelIndex = selected;
-                modelOverride.stringValue = selected > 0 ? renderModelNames[selected] : "";
+                modelOverride.stringValue = (selected > 0) ? renderModelNames[selected] : "";
             }
-
             GUILayout.EndHorizontal();
 
             EditorGUILayout.PropertyField(shader);

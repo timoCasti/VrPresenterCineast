@@ -4,12 +4,13 @@
 //
 //=============================================================================
 
+using UnityEngine;
 using System.Collections;
 using System.Reflection;
-using UnityEngine;
-#if UNITY_2017_2_OR_NEWER
-using UnityEngine.XR;
+using Valve.VR;
 
+#if UNITY_2017_2_OR_NEWER
+    using UnityEngine.XR;
 #else
 using XRSettings = UnityEngine.VR.VRSettings;
 using XRDevice = UnityEngine.VR.VRDevice;
@@ -20,67 +21,56 @@ namespace Valve.VR
     [RequireComponent(typeof(Camera))]
     public class SteamVR_Camera : MonoBehaviour
     {
-        [SerializeField] private Transform _head;
-
-        public Transform head
-        {
-            get { return _head; }
-        }
-
-        public Transform offset
-        {
-            get { return _head; }
-        } // legacy
-
-        public Transform origin
-        {
-            get { return _head.parent; }
-        }
+        [SerializeField]
+        private Transform _head;
+        public Transform head { get { return _head; } }
+        public Transform offset { get { return _head; } } // legacy
+        public Transform origin { get { return _head.parent; } }
 
         public new Camera camera { get; private set; }
 
-        [SerializeField] private Transform _ears;
-
-        public Transform ears
-        {
-            get { return _ears; }
-        }
+        [SerializeField]
+        private Transform _ears;
+        public Transform ears { get { return _ears; } }
 
         public Ray GetRay()
         {
             return new Ray(_head.position, _head.forward);
         }
 
-        public bool wireframe;
+        public bool wireframe = false;
 
 #if UNITY_2017_2_OR_NEWER
-        public static float sceneResolutionScale
-        {
-            get { return XRSettings.eyeTextureResolutionScale; }
-            set { XRSettings.eyeTextureResolutionScale = value; }
-        }
+    static public float sceneResolutionScale
+    {
+        get { return XRSettings.eyeTextureResolutionScale; }
+        set { XRSettings.eyeTextureResolutionScale = value; }
+    }
 #else
         static public float sceneResolutionScale
         {
             get { return XRSettings.renderScale; }
-            set { XRSettings.renderScale = value; }
+            set { if (value == 0) return; XRSettings.renderScale = value; }
         }
 #endif
 
         #region Enable / Disable
 
-        private void OnDisable()
+        void OnDisable()
         {
             SteamVR_Render.Remove(this);
         }
 
-        private void OnEnable()
+        void OnEnable()
         {
             // Bail if no hmd is connected
             var vr = SteamVR.instance;
             if (vr == null)
             {
-                if (head != null) head.GetComponent<SteamVR_TrackedObject>().enabled = false;
+                if (head != null)
+                {
+                    head.GetComponent<SteamVR_TrackedObject>().enabled = false;
+                }
 
                 enabled = false;
                 return;
@@ -125,13 +115,13 @@ namespace Valve.VR
 
         #region Functionality to ensure SteamVR_Camera component is always the last component on an object
 
-        private void Awake()
+        void Awake()
         {
             camera = GetComponent<Camera>(); // cached to avoid runtime lookup
             ForceLast();
         }
 
-        private static Hashtable values;
+        static Hashtable values;
 
         public void ForceLast()
         {
@@ -143,7 +133,6 @@ namespace Valve.VR
                     var f = entry.Key as FieldInfo;
                     f.SetValue(this, entry.Value);
                 }
-
                 values = null;
             }
             else
@@ -152,10 +141,13 @@ namespace Valve.VR
                 var components = GetComponents<Component>();
 
                 // But first make sure there aren't any other SteamVR_Cameras on this object.
-                for (var i = 0; i < components.Length; i++)
+                for (int i = 0; i < components.Length; i++)
                 {
                     var c = components[i] as SteamVR_Camera;
-                    if (c != null && c != this) DestroyImmediate(c);
+                    if (c != null && c != this)
+                    {
+                        DestroyImmediate(c);
+                    }
                 }
 
                 components = GetComponents<Component>();
@@ -164,8 +156,7 @@ namespace Valve.VR
                 {
                     // Store off values to be restored on new instance
                     values = new Hashtable();
-                    var fields = GetType()
-                        .GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                    var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                     foreach (var f in fields)
                         if (f.IsPublic || f.IsDefined(typeof(SerializeField), true))
                             values[f] = f.GetValue(this);
@@ -182,20 +173,13 @@ namespace Valve.VR
         #region Expand / Collapse object hierarchy
 
 #if UNITY_EDITOR
-        public bool isExpanded
-        {
-            get { return head != null && transform.parent == head; }
-        }
+        public bool isExpanded { get { return head != null && transform.parent == head; } }
 #endif
-        private const string eyeSuffix = " (eye)";
-        private const string earsSuffix = " (ears)";
-        private const string headSuffix = " (head)";
-        private const string originSuffix = " (origin)";
-
-        public string baseName
-        {
-            get { return name.EndsWith(eyeSuffix) ? name.Substring(0, name.Length - eyeSuffix.Length) : name; }
-        }
+        const string eyeSuffix = " (eye)";
+        const string earsSuffix = " (ears)";
+        const string headSuffix = " (head)";
+        const string originSuffix = " (origin)";
+        public string baseName { get { return name.EndsWith(eyeSuffix) ? name.Substring(0, name.Length - eyeSuffix.Length) : name; } }
 
         // Object hierarchy creation to make it easy to parent other objects appropriately,
         // otherwise this gets called on demand at runtime. Remaining initialization is

@@ -73,13 +73,7 @@ public class MyExhibitionBuilder : MonoBehaviour
     public static IEnumerator getMorelikeThisOne(int exhibitNumber)
     {
 
-        
-
-        //try something
-        //dis = GameObject.FindObjectOfType<Displayal>();
-        //dis.WaitForRetrigger(2);
-        
-        //isFinished = false;
+       
         
         CineastApi myApi = CineastApi.FindObjectOfType<CineastApi>();
         Action<List<MultimediaObject>> handlernew =
@@ -106,92 +100,25 @@ public class MyExhibitionBuilder : MonoBehaviour
         
         triggerWait = false;
 
-        Debug.Log("Diräkt nocher");
-        yield return new WaitForSeconds(2);
-        Debug.Log("Diräkt nocher und den no 2");
+       
         
-        
-        yield return WaitForRetrigger();
-
-        
-        
-        
-
+     
         isFinished = true;
 
     }
 
-    public static void helpmyhelper()
-    {
-        Debug.Log("1 helphelp");
-       // StartCoroutine(WaitForRetrigger());
-        
-       // StartCoroutine(WaitForRetrigger());
-        Debug.Log(" 2  helphelp");
-    }
-    public static IEnumerator WaitForRetrigger()
-    {
-        Debug.Log("At least");
-        yield return new WaitForSeconds(2);
-        triggerWait = true;
-    } 
-
-    public CineastApi GetApi()
-    {
-        return GetComponent<CineastApi>();
-    }
-
-    private void setTestingBool()
-    {
-        
-        testBool = true;
-    }
-
-
-    private IEnumerator collision()
-    {
-
-        for (;;)
-        {
-            String a = myexhibitionManager.GetRoomByIndex(0).Walls[0].Displayals[0].id;
-            Debug.Log("DO DO DO collision method  " + a);
-            yield return new WaitForSecondsRealtime(.5f);
-        }
-   
-
-    }
-    
-    // ExhibitionManager.ResoreExhibits zum Bilder update spöter!!!
-
-    private void testLog()
-    {
-        
-        Debug.Log("DO DO DO  testLog GOT TRIGGERED " );
-        testBool = false;
-    }
-    
-    
-    
 
     private IEnumerator getCineastImg(int numb)
     {
         CineastApi api = GetComponent<CineastApi>();
         Action<List<MultimediaObject>> handlernew =
             new Action<List<MultimediaObject>>(delegate(List<MultimediaObject> list) { });
-
-
     
         api.RequestIds(numb,handlernew);
-        //yield return new WaitForSecondsRealtime(2);
+        
         yield return new WaitUntil(api.HasFinished);
         randomIds = api.GetRandomObjectIds();
-
-        String url = api.GetRandomObjectIds()[0];
-        //url = api.GetMultimediaObjects()[3].id;
-        //url = CineastUtils.GetImageUrlbyID(url);
-
-        
-        //Debug.Log("getConeastImg" + randomIds[0]);
+  
 
         createExhibition(numb);
 
@@ -200,17 +127,6 @@ public class MyExhibitionBuilder : MonoBehaviour
         TimeForTrigger = Time.time;
 
 
-        //yield return new WaitForSeconds(1);
-
-        // for some reason I cant make the Boxcolliders as Trigger in creation, therefor its done here
-        //makeCollidersTriggers(randomIds.Count);
-
-
-
-
-
-        //yield return true;
-        // set loaded image
     }
     
 
@@ -231,6 +147,7 @@ public class MyExhibitionBuilder : MonoBehaviour
         // get the random Images from Cineast uses int parameter for number of images
         Exhibit[] arr = getExhibits(numb,randomIds);
         Exhibit[] exarrEmpty = new Exhibit[0];
+        Exhibit[] Canvas = createMyCanvas(randomIds);
         
 
         //Create four Walls
@@ -243,7 +160,7 @@ public class MyExhibitionBuilder : MonoBehaviour
         DefaultNamespace.VREM.Model.Wall walltwo = new DefaultNamespace.VREM.Model.Wall
         {
             color = new Vector3(0.7f, 0.7f, 0.7f), texture = "Fabric02Material", direction = "EAST",
-            exhibits = exarrEmpty
+            exhibits = Canvas
         };
         DefaultNamespace.VREM.Model.Wall wallthree = new DefaultNamespace.VREM.Model.Wall
         {
@@ -291,6 +208,30 @@ public class MyExhibitionBuilder : MonoBehaviour
         
         //collision();
         ;
+    }
+
+
+    private static Exhibit[] createMyCanvas(List<String> id)
+    {
+        Exhibit[] re;//= new Exhibit[0];
+
+        re =new []{
+            new Exhibit
+            {
+                path = CineastUtils.GetImageUrlbyID(id[0]),
+                name = "Masterpiece",
+                position = new Vector3(5, 3, 1),
+                size = new Vector3(5, 5, 5),
+                id = "1000",
+                type = "IMAGE",
+                light = false,
+                description = ""
+            }
+       
+        }
+        ;
+
+        return re;
     }
 
 

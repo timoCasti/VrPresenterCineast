@@ -6,43 +6,53 @@
 //=============================================================================
 
 using UnityEngine;
+using System.Collections;
 
 namespace Valve.VR.InteractionSystem
 {
-    //-------------------------------------------------------------------------
-    public class LinearAudioPitch : MonoBehaviour
-    {
-        public bool applyContinuously = true;
+	//-------------------------------------------------------------------------
+	public class LinearAudioPitch : MonoBehaviour
+	{
+		public LinearMapping linearMapping;
+		public AnimationCurve pitchCurve;
+		public float minPitch;
+		public float maxPitch;
+		public bool applyContinuously = true;
 
-        private AudioSource audioSource;
-        public LinearMapping linearMapping;
-        public float maxPitch;
-        public float minPitch;
-        public AnimationCurve pitchCurve;
+		private AudioSource audioSource;
+
+	
+		//-------------------------------------------------
+		void Awake()
+		{
+			if ( audioSource == null )
+			{
+				audioSource = GetComponent<AudioSource>();
+			}
+
+			if ( linearMapping == null )
+			{
+				linearMapping = GetComponent<LinearMapping>();
+			}
+		}
 
 
-        //-------------------------------------------------
-        private void Awake()
-        {
-            if (audioSource == null) audioSource = GetComponent<AudioSource>();
-
-            if (linearMapping == null) linearMapping = GetComponent<LinearMapping>();
-        }
-
-
-        //-------------------------------------------------
-        private void Update()
-        {
-            if (applyContinuously) Apply();
-        }
+		//-------------------------------------------------
+		void Update()
+		{
+			if ( applyContinuously )
+			{
+				Apply();
+			}
+		}
 
 
-        //-------------------------------------------------
-        private void Apply()
-        {
-            var y = pitchCurve.Evaluate(linearMapping.value);
+		//-------------------------------------------------
+		private void Apply()
+		{
+			float y = pitchCurve.Evaluate( linearMapping.value );
 
-            audioSource.pitch = Mathf.Lerp(minPitch, maxPitch, y);
-        }
-    }
+			audioSource.pitch = Mathf.Lerp( minPitch, maxPitch, y );
+		}
+	}
 }

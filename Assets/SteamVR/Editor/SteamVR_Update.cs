@@ -4,10 +4,10 @@
 //
 //=============================================================================
 
+using UnityEngine;
+using UnityEditor;
 using System.IO;
 using System.Text.RegularExpressions;
-using UnityEditor;
-using UnityEngine;
 
 #if UNITY_2018_3_OR_NEWER
 #pragma warning disable CS0618
@@ -18,26 +18,23 @@ namespace Valve.VR
     [InitializeOnLoad]
     public class SteamVR_Update : EditorWindow
     {
-        private const string currentVersion = "2.0";
-        private const string versionUrl = "http://media.steampowered.com/apps/steamvr/unitypluginversion.txt";
-        private const string notesUrl = "http://media.steampowered.com/apps/steamvr/unityplugin-v{0}.txt";
-        private const string pluginUrl = "http://u3d.as/content/valve-corporation/steam-vr-plugin";
-        private const string doNotShowKey = "SteamVR.DoNotShow.v{0}";
+        const string currentVersion = "2.1";
+        const string versionUrl = "http://media.steampowered.com/apps/steamvr/unitypluginversion.txt";
+        const string notesUrl = "http://media.steampowered.com/apps/steamvr/unityplugin-v{0}.txt";
+        const string pluginUrl = "http://u3d.as/content/valve-corporation/steam-vr-plugin";
+        const string doNotShowKey = "SteamVR.DoNotShow.v{0}";
 
-        private static bool gotVersion;
-        private static WWW wwwVersion, wwwNotes;
-        private static string version, notes;
-        private static SteamVR_Update window;
-
-        private Vector2 scrollPosition;
-        private bool toggleState;
+        static bool gotVersion = false;
+        static WWW wwwVersion, wwwNotes;
+        static string version, notes;
+        static SteamVR_Update window;
 
         static SteamVR_Update()
         {
             EditorApplication.update += Update;
         }
 
-        private static void Update()
+        static void Update()
         {
             if (!gotVersion)
             {
@@ -81,7 +78,7 @@ namespace Valve.VR
             EditorApplication.update -= Update;
         }
 
-        private static bool UrlSuccess(WWW www)
+        static bool UrlSuccess(WWW www)
         {
             if (!string.IsNullOrEmpty(www.error))
                 return false;
@@ -90,7 +87,7 @@ namespace Valve.VR
             return true;
         }
 
-        private static bool ShouldDisplay()
+        static bool ShouldDisplay()
         {
             if (string.IsNullOrEmpty(version))
                 return false;
@@ -102,7 +99,7 @@ namespace Valve.VR
             // parse to see if newer (e.g. 1.0.4 vs 1.0.3)
             var versionSplit = version.Split('.');
             var currentVersionSplit = currentVersion.Split('.');
-            for (var i = 0; i < versionSplit.Length && i < currentVersionSplit.Length; i++)
+            for (int i = 0; i < versionSplit.Length && i < currentVersionSplit.Length; i++)
             {
                 int versionValue, currentVersionValue;
                 if (int.TryParse(versionSplit[i], out versionValue) &&
@@ -122,7 +119,10 @@ namespace Valve.VR
             return true;
         }
 
-        private string GetResourcePath()
+        Vector2 scrollPosition;
+        bool toggleState;
+
+        string GetResourcePath()
         {
             var ms = MonoScript.FromScriptableObject(this);
             var path = AssetDatabase.GetAssetPath(ms);
@@ -155,7 +155,10 @@ namespace Valve.VR
 
             GUILayout.FlexibleSpace();
 
-            if (GUILayout.Button("Get Latest Version")) Application.OpenURL(pluginUrl);
+            if (GUILayout.Button("Get Latest Version"))
+            {
+                Application.OpenURL(pluginUrl);
+            }
 
             EditorGUI.BeginChangeCheck();
             var doNotShow = GUILayout.Toggle(toggleState, "Do not prompt for this version again.");

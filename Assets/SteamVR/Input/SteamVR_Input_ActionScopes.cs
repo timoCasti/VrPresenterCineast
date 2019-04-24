@@ -7,6 +7,6 @@ namespace Valve.VR
     {
         ActionSet,
         Application,
-        Global
+        Global,
     }
 }

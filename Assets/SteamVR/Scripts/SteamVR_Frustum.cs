@@ -5,15 +5,16 @@
 //=============================================================================
 
 using UnityEngine;
+using Valve.VR;
 
 namespace Valve.VR
 {
-    [ExecuteInEditMode]
-    [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
+    [ExecuteInEditMode, RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
     public class SteamVR_Frustum : MonoBehaviour
     {
-        public float fovLeft = 45, fovRight = 45, fovTop = 45, fovBottom = 45, nearZ = 0.5f, farZ = 2.5f;
         public SteamVR_TrackedObject.EIndex index;
+
+        public float fovLeft = 45, fovRight = 45, fovTop = 45, fovBottom = 45, nearZ = 0.5f, farZ = 2.5f;
 
         public void UpdateModel()
         {
@@ -34,38 +35,36 @@ namespace Valve.VR
             var tcos = Mathf.Cos(fovTop * Mathf.Deg2Rad);
             var bcos = Mathf.Cos(-fovBottom * Mathf.Deg2Rad);
 
-            var corners = new[]
-            {
-                new Vector3(lsin * nearZ / lcos, tsin * nearZ / tcos, nearZ), //tln
-                new Vector3(rsin * nearZ / rcos, tsin * nearZ / tcos, nearZ), //trn
-                new Vector3(rsin * nearZ / rcos, bsin * nearZ / bcos, nearZ), //brn
-                new Vector3(lsin * nearZ / lcos, bsin * nearZ / bcos, nearZ), //bln
-                new Vector3(lsin * farZ / lcos, tsin * farZ / tcos, farZ), //tlf
-                new Vector3(rsin * farZ / rcos, tsin * farZ / tcos, farZ), //trf
-                new Vector3(rsin * farZ / rcos, bsin * farZ / bcos, farZ), //brf
-                new Vector3(lsin * farZ / lcos, bsin * farZ / bcos, farZ) //blf
-            };
+            var corners = new Vector3[] {
+            new Vector3(lsin * nearZ / lcos, tsin * nearZ / tcos, nearZ), //tln
+			new Vector3(rsin * nearZ / rcos, tsin * nearZ / tcos, nearZ), //trn
+			new Vector3(rsin * nearZ / rcos, bsin * nearZ / bcos, nearZ), //brn
+			new Vector3(lsin * nearZ / lcos, bsin * nearZ / bcos, nearZ), //bln
+			new Vector3(lsin * farZ  / lcos, tsin * farZ  / tcos, farZ ), //tlf
+			new Vector3(rsin * farZ  / rcos, tsin * farZ  / tcos, farZ ), //trf
+			new Vector3(rsin * farZ  / rcos, bsin * farZ  / bcos, farZ ), //brf
+			new Vector3(lsin * farZ  / lcos, bsin * farZ  / bcos, farZ ), //blf
+		};
 
-            var triangles = new[]
-            {
-                //	0, 1, 2, 0, 2, 3, // near
-                //	0, 2, 1, 0, 3, 2, // near
-                //	4, 5, 6, 4, 6, 7, // far
-                //	4, 6, 5, 4, 7, 6, // far
-                0, 4, 7, 0, 7, 3, // left
-                0, 7, 4, 0, 3, 7, // left
-                1, 5, 6, 1, 6, 2, // right
-                1, 6, 5, 1, 2, 6, // right
-                0, 4, 5, 0, 5, 1, // top
-                0, 5, 4, 0, 1, 5, // top
-                2, 3, 7, 2, 7, 6, // bottom
-                2, 7, 3, 2, 6, 7 // bottom
-            };
+            var triangles = new int[] {
+		//	0, 1, 2, 0, 2, 3, // near
+		//	0, 2, 1, 0, 3, 2, // near
+		//	4, 5, 6, 4, 6, 7, // far
+		//	4, 6, 5, 4, 7, 6, // far
+			0, 4, 7, 0, 7, 3, // left
+			0, 7, 4, 0, 3, 7, // left
+			1, 5, 6, 1, 6, 2, // right
+			1, 6, 5, 1, 2, 6, // right
+			0, 4, 5, 0, 5, 1, // top
+			0, 5, 4, 0, 1, 5, // top
+			2, 3, 7, 2, 7, 6, // bottom
+			2, 7, 3, 2, 6, 7, // bottom
+		};
 
-            var j = 0;
+            int j = 0;
             var vertices = new Vector3[triangles.Length];
             var normals = new Vector3[triangles.Length];
-            for (var i = 0; i < triangles.Length / 3; i++)
+            for (int i = 0; i < triangles.Length / 3; i++)
             {
                 var a = corners[triangles[i * 3 + 0]];
                 var b = corners[triangles[i * 3 + 1]];
@@ -92,7 +91,7 @@ namespace Valve.VR
 
         private void OnDeviceConnected(int i, bool connected)
         {
-            if (i != (int) index)
+            if (i != (int)index)
                 return;
 
             GetComponent<MeshFilter>().mesh = null;
@@ -100,36 +99,30 @@ namespace Valve.VR
             if (connected)
             {
                 var system = OpenVR.System;
-                if (system != null && system.GetTrackedDeviceClass((uint) i) == ETrackedDeviceClass.TrackingReference)
+                if (system != null && system.GetTrackedDeviceClass((uint)i) == ETrackedDeviceClass.TrackingReference)
                 {
                     var error = ETrackedPropertyError.TrackedProp_Success;
-                    var result = system.GetFloatTrackedDeviceProperty((uint) i,
-                        ETrackedDeviceProperty.Prop_FieldOfViewLeftDegrees_Float, ref error);
+                    var result = system.GetFloatTrackedDeviceProperty((uint)i, ETrackedDeviceProperty.Prop_FieldOfViewLeftDegrees_Float, ref error);
                     if (error == ETrackedPropertyError.TrackedProp_Success)
                         fovLeft = result;
 
-                    result = system.GetFloatTrackedDeviceProperty((uint) i,
-                        ETrackedDeviceProperty.Prop_FieldOfViewRightDegrees_Float, ref error);
+                    result = system.GetFloatTrackedDeviceProperty((uint)i, ETrackedDeviceProperty.Prop_FieldOfViewRightDegrees_Float, ref error);
                     if (error == ETrackedPropertyError.TrackedProp_Success)
                         fovRight = result;
 
-                    result = system.GetFloatTrackedDeviceProperty((uint) i,
-                        ETrackedDeviceProperty.Prop_FieldOfViewTopDegrees_Float, ref error);
+                    result = system.GetFloatTrackedDeviceProperty((uint)i, ETrackedDeviceProperty.Prop_FieldOfViewTopDegrees_Float, ref error);
                     if (error == ETrackedPropertyError.TrackedProp_Success)
                         fovTop = result;
 
-                    result = system.GetFloatTrackedDeviceProperty((uint) i,
-                        ETrackedDeviceProperty.Prop_FieldOfViewBottomDegrees_Float, ref error);
+                    result = system.GetFloatTrackedDeviceProperty((uint)i, ETrackedDeviceProperty.Prop_FieldOfViewBottomDegrees_Float, ref error);
                     if (error == ETrackedPropertyError.TrackedProp_Success)
                         fovBottom = result;
 
-                    result = system.GetFloatTrackedDeviceProperty((uint) i,
-                        ETrackedDeviceProperty.Prop_TrackingRangeMinimumMeters_Float, ref error);
+                    result = system.GetFloatTrackedDeviceProperty((uint)i, ETrackedDeviceProperty.Prop_TrackingRangeMinimumMeters_Float, ref error);
                     if (error == ETrackedPropertyError.TrackedProp_Success)
                         nearZ = result;
 
-                    result = system.GetFloatTrackedDeviceProperty((uint) i,
-                        ETrackedDeviceProperty.Prop_TrackingRangeMaximumMeters_Float, ref error);
+                    result = system.GetFloatTrackedDeviceProperty((uint)i, ETrackedDeviceProperty.Prop_TrackingRangeMaximumMeters_Float, ref error);
                     if (error == ETrackedPropertyError.TrackedProp_Success)
                         farZ = result;
 
@@ -138,20 +131,20 @@ namespace Valve.VR
             }
         }
 
-        private void OnEnable()
+        void OnEnable()
         {
             GetComponent<MeshFilter>().mesh = null;
             SteamVR_Events.DeviceConnected.Listen(OnDeviceConnected);
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
             SteamVR_Events.DeviceConnected.Remove(OnDeviceConnected);
             GetComponent<MeshFilter>().mesh = null;
         }
 
 #if UNITY_EDITOR
-        private void Update()
+        void Update()
         {
             if (!Application.isPlaying)
                 UpdateModel();

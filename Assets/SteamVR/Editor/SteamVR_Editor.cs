@@ -4,21 +4,20 @@
 //
 //=============================================================================
 
-using System.IO;
-using UnityEditor;
 using UnityEngine;
+using UnityEditor;
+using System.IO;
 using Valve.VR;
 
-[CustomEditor(typeof(SteamVR_Camera))]
-[CanEditMultipleObjects]
+[CustomEditor(typeof(SteamVR_Camera)), CanEditMultipleObjects]
 public class SteamVR_Editor : Editor
 {
-    private readonly int bannerHeight = 150;
-    private Texture logo;
+    int bannerHeight = 150;
+    Texture logo;
 
-    private SerializedProperty script, wireframe;
+    SerializedProperty script, wireframe;
 
-    private string GetResourcePath()
+    string GetResourcePath()
     {
         var ms = MonoScript.FromScriptableObject(this);
         var path = AssetDatabase.GetAssetPath(ms);
@@ -26,7 +25,7 @@ public class SteamVR_Editor : Editor
         return path.Substring(0, path.Length - "Editor".Length) + "Textures/";
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
         var resourcePath = GetResourcePath();
 
@@ -66,6 +65,7 @@ public class SteamVR_Editor : Editor
             {
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("Expand"))
+                {
                     foreach (SteamVR_Camera target in targets)
                     {
                         if (AssetDatabase.Contains(target))
@@ -76,7 +76,7 @@ public class SteamVR_Editor : Editor
                             EditorUtility.SetDirty(target);
                         }
                     }
-
+                }
                 GUILayout.Space(18);
                 GUILayout.EndHorizontal();
             }
@@ -85,6 +85,7 @@ public class SteamVR_Editor : Editor
             {
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("Collapse"))
+                {
                     foreach (SteamVR_Camera target in targets)
                     {
                         if (AssetDatabase.Contains(target))
@@ -95,7 +96,7 @@ public class SteamVR_Editor : Editor
                             EditorUtility.SetDirty(target);
                         }
                     }
-
+                }
                 GUILayout.Space(18);
                 GUILayout.EndHorizontal();
             }
@@ -109,8 +110,7 @@ public class SteamVR_Editor : Editor
 
     public static void ExportPackage()
     {
-        AssetDatabase.ExportPackage(new[]
-        {
+        AssetDatabase.ExportPackage(new string[] {
             "Assets/SteamVR",
             "Assets/Plugins/openvr_api.cs",
             "Assets/Plugins/openvr_api.bundle",
@@ -120,7 +120,7 @@ public class SteamVR_Editor : Editor
             "Assets/Plugins/x86_64/openvr_api.dll",
             "Assets/Plugins/x86_64/steam_api.dll",
             "Assets/Plugins/x86_64/libsteam_api.so",
-            "Assets/Plugins/x86_64/libopenvr_api.so"
+            "Assets/Plugins/x86_64/libopenvr_api.so",
         }, "steamvr.unitypackage", ExportPackageOptions.Recurse);
         EditorApplication.Exit(0);
     }

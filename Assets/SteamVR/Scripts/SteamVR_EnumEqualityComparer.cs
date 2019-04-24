@@ -6,11 +6,16 @@ using System.Linq.Expressions;
 
 namespace Valve.VR
 {
-    internal struct SteamVREnumEqualityComparer<TEnum> : IEqualityComparer<TEnum> where TEnum : struct
+    struct SteamVREnumEqualityComparer<TEnum> : IEqualityComparer<TEnum> where TEnum : struct
     {
-        private static class BoxAvoidance
+        static class BoxAvoidance
         {
-            private static readonly Func<TEnum, int> _wrapper;
+            static readonly Func<TEnum, int> _wrapper;
+
+            public static int ToInt(TEnum enu)
+            {
+                return _wrapper(enu);
+            }
 
             static BoxAvoidance()
             {
@@ -18,11 +23,6 @@ namespace Valve.VR
                 var c = Expression.ConvertChecked(p, typeof(int));
 
                 _wrapper = Expression.Lambda<Func<TEnum, int>>(c, p).Compile();
-            }
-
-            public static int ToInt(TEnum enu)
-            {
-                return _wrapper(enu);
             }
         }
 
@@ -46,7 +46,7 @@ namespace Valve.VR
 
         public int GetHashCode(SteamVR_Input_Sources obj)
         {
-            return (int) obj;
+            return (int)obj;
         }
     }
 }

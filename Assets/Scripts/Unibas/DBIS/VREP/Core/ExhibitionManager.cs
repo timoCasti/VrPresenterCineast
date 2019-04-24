@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using DefaultNamespace;
 using DefaultNamespace.VREM.Model;
+using InGamePaint;
 using Unibas.DBIS.VREP.World;
 using UnityEngine;
 using World;
 
 namespace Unibas.DBIS.VREP.Core
 {
-    public class ExhibitionManager
+    public class ExhibitionManager:MonoBehaviour
     {
         private readonly Exhibition _exhibition;
 
@@ -81,8 +82,37 @@ namespace Unibas.DBIS.VREP.Core
                 logo.transform.localPosition =
                     new Vector3(-1.493f, room.size.y - .01f, 3.35f); // manually found values
                 logo.transform.localRotation = Quaternion.Euler(new Vector3(90, 180));
-                logo.transform.localScale = Vector3.one * 10000;
+                logo.transform.localScale = Vector3.one * 1000;
                 //}
+
+                
+               // try add paintable canvas here
+
+               // name= Displayal (1000)
+               //var Canv = exhibitionRoom.Walls[1].Displayals.Find(displayal => displayal.name.Equals("Masterpiece"));
+               //Debug.Log(exhibitionRoom.Walls[1].Displayals[0].name);
+               //Debug.Log("found canvas" + Canv.name);
+               
+               var canv = exhibitionRoom.Walls[1].Displayals[0];
+               var Canvas = canv.gameObject.transform.Find("MyCanvas").gameObject;
+               //Debug.Log(Canvas.name);
+               Canvas.gameObject.AddComponent<Paintable>();
+               Canvas.gameObject.AddComponent<VrMoveable>();
+
+               Canvas.gameObject.GetComponent<VrMoveable>().enabled = true;
+               
+               canv.gameObject.GetComponent<BoxCollider>().isTrigger = false;
+               
+               // Add Palette
+               var pal = ObjectFactory.GetPalettePrefab();
+               var palette =Instantiate(pal);
+               palette.transform.SetParent(exhibitionRoom.transform,false);
+               palette.name = "MyPalette";
+               palette.transform.localPosition=new Vector3(7.99f,3,-3);
+               palette.transform.localRotation= Quaternion.Euler(new Vector3(90,-90,0));
+               palette.transform.localScale=Vector3.one*0.5f;
+
+
             }
 
             // For teleporting, each room needs to be created.

@@ -32,6 +32,15 @@ namespace World
             //}
         }
 
+        public static GameObject GetPalettePrefab()
+        {
+            var prefab =Resources.Load("Prefabs/Palette", typeof(GameObject)) as GameObject;
+            if (prefab == null)
+                throw new Exception("Could not load Palette as Resource");
+
+            return prefab;
+        }
+
         public static Vector3 CalculateRoomPosition(DefaultNamespace.VREM.Model.Room room)
         {
             // TODO exhibition-dependet calculation

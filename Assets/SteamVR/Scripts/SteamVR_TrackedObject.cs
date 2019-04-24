@@ -4,8 +4,8 @@
 //
 //=============================================================================
 
-using System;
 using UnityEngine;
+using Valve.VR;
 
 namespace Valve.VR
 {
@@ -14,7 +14,7 @@ namespace Valve.VR
         public enum EIndex
         {
             None = -1,
-            Hmd = (int) OpenVR.k_unTrackedDeviceIndex_Hmd,
+            Hmd = (int)OpenVR.k_unTrackedDeviceIndex_Hmd,
             Device1,
             Device2,
             Device3,
@@ -34,15 +34,8 @@ namespace Valve.VR
 
         public EIndex index;
 
-        private readonly SteamVR_Events.Action newPosesAction;
-
         [Tooltip("If not set, relative to parent")]
         public Transform origin;
-
-        private SteamVR_TrackedObject()
-        {
-            newPosesAction = SteamVR_Events.NewPosesAction(OnNewPoses);
-        }
 
         public bool isValid { get; private set; }
 
@@ -51,7 +44,7 @@ namespace Valve.VR
             if (index == EIndex.None)
                 return;
 
-            var i = (int) index;
+            var i = (int)index;
 
             isValid = false;
             if (poses.Length <= i)
@@ -79,12 +72,19 @@ namespace Valve.VR
             }
         }
 
+        SteamVR_Events.Action newPosesAction;
+
+        SteamVR_TrackedObject()
+        {
+            newPosesAction = SteamVR_Events.NewPosesAction(OnNewPoses);
+        }
+
         private void Awake()
         {
             OnEnable();
         }
 
-        private void OnEnable()
+        void OnEnable()
         {
             var render = SteamVR_Render.instance;
             if (render == null)
@@ -96,7 +96,7 @@ namespace Valve.VR
             newPosesAction.enabled = true;
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
             newPosesAction.enabled = false;
             isValid = false;
@@ -104,8 +104,8 @@ namespace Valve.VR
 
         public void SetDeviceIndex(int index)
         {
-            if (Enum.IsDefined(typeof(EIndex), index))
-                this.index = (EIndex) index;
+            if (System.Enum.IsDefined(typeof(EIndex), index))
+                this.index = (EIndex)index;
         }
     }
 }

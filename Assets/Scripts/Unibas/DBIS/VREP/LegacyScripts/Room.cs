@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DefaultNamespace;
 using DefaultNamespace.ObjImport;
 using DefaultNamespace.VREM.Model;
+using InGamePaint;
 using Unibas.DBIS.VREP;
 using UnityEngine;
 using World;
@@ -125,6 +126,9 @@ public class Room : MonoBehaviour
         var disp = displayal.gameObject.GetComponent<Displayal>();
 
         var image = displayal.transform.Find("Plane").gameObject.AddComponent<ImageLoader>(); // Displayal
+
+        var mycanv = displayal.transform.Find("MyCanvas").gameObject.AddComponent<Paintable>();
+        
         //ImageLoader image = displayal.AddComponent<ImageLoader>();// ImageDisplayPlane
         image.ReloadImage(url);
         Debug.Log(GetWallForOrientation(wall));
