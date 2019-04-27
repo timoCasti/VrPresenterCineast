@@ -98,7 +98,7 @@ namespace World
                 }
 
                 else {
-                    Debug.Log("I GOT NOT DESTROYED");
+                    //Debug.Log("I GOT NOT DESTROYED");
                 }
 
                 

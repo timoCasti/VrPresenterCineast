@@ -180,7 +180,7 @@ public class MyExhibitionBuilder : MonoBehaviour
         DefaultNamespace.VREM.Model.Room myFirstRoom = new DefaultNamespace.VREM.Model.Room
         {
             walls = wallar,
-            size = new Vector3(16, 6, 10),
+            size = new Vector3(8, 3, 10),
             floor = "NWoodFloor",
             ceiling = "Fabric02Material",
             text = "TExtofRoom",
@@ -220,8 +220,8 @@ public class MyExhibitionBuilder : MonoBehaviour
             {
                 path = CineastUtils.GetImageUrlbyID(id[0]),
                 name = "Masterpiece",
-                position = new Vector3(5, 3, 1),
-                size = new Vector3(5, 5, 5),
+                position = new Vector3(4, 1.5f, 1),
+                size = new Vector3(1.5f, 1.5f, 1.5f),
                 id = "1000",
                 type = "IMAGE",
                 light = false,
@@ -245,7 +245,7 @@ public class MyExhibitionBuilder : MonoBehaviour
         Exhibit[] re= new Exhibit[number];
         List<String> id = ids;
         Exhibit add;
-        int pos = 2;
+        float pos = 1;
         int name = 1;
         
         for (int i = 0; i < number; i++)
@@ -256,14 +256,14 @@ public class MyExhibitionBuilder : MonoBehaviour
             {
                 path = CineastUtils.GetImageUrlbyID(id[i]),
                 name = name.ToString(),
-                position = new Vector3(pos, 3, 1),
-                size = new Vector3(2, 2, 2),
+                position = new Vector3(pos, 1.5f, 1),
+                size = new Vector3(1, 1, 1),
                 id = ""+i,
                 type = "IMAGE",
                 light = false,
                 description = ""
             };
-            pos += 3;
+            pos += 1.5f;
             name++;
             re[i] = exhibitToAdd;
         }
