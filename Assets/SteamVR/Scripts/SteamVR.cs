@@ -84,7 +84,7 @@ namespace Valve.VR
 
         public static InitializedStates initializedState = InitializedStates.None;
 
-        public static void Initialize(bool forceUnityVRMode = false)
+        public static void Initialize(bool forceUnityVRMode = false) //do isch false gsi
         {
             if (forceUnityVRMode)
             {

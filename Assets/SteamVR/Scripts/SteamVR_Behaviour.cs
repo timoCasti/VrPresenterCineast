@@ -26,7 +26,7 @@ namespace Valve.VR
             {
                 if (_instance == null)
                 {
-                    Initialize(false);
+                    Initialize(true); //do isch false gsi
                 }
 
                 return _instance;
@@ -113,7 +113,7 @@ namespace Valve.VR
             }
             else
             {
-                SteamVR.Initialize(false);
+                SteamVR.Initialize(false); //false gsi
             }
         }
 
@@ -157,7 +157,7 @@ namespace Valve.VR
         private void EnableOpenVR()
         {
             XRSettings.enabled = true;
-            SteamVR.Initialize(false);
+            SteamVR.Initialize(false); //false gsi
             initializeCoroutine = null;
             forcingInitialization = false;
         }
