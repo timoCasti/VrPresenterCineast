@@ -221,7 +221,7 @@ public class MyExhibitionBuilder : MonoBehaviour
                 path = CineastUtils.GetImageUrlbyID(id[0]),
                 name = "Masterpiece",
                 position = new Vector3(4, 1.5f, 1),
-                size = new Vector3(1.5f, 1.5f, 1.5f),
+                size = new Vector3(1f, 1f, 1f),
                 id = "1000",
                 type = "IMAGE",
                 light = false,

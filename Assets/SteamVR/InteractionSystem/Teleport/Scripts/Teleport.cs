@@ -797,7 +797,7 @@ namespace Valve.VR.InteractionSystem
 			{
 				if ( validLocation )
 				{
-					pointerHand.TriggerHapticPulse( 800 );
+					//pointerHand.TriggerHapticPulse( 800 );
 				}
 				else
 				{
