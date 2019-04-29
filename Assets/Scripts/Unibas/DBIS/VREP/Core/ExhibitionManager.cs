@@ -110,7 +110,10 @@ namespace Unibas.DBIS.VREP.Core
                palette.name = "MyPalette";
                palette.transform.localPosition=new Vector3(3.99f,1.7f,-2);
                palette.transform.localRotation= Quaternion.Euler(new Vector3(90,-90,0));
-               palette.transform.localScale=Vector3.one*0.2f;
+               palette.transform.localScale=Vector3.one*0.1f;
+               
+               // Add Buttons
+               //var buttonStartPlane = exhibitionRoom.Walls[1].gameObject.AddComponent<Canvas>();
 
 
             }

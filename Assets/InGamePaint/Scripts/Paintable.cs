@@ -307,6 +307,19 @@ namespace InGamePaint
             File.WriteAllBytes(path, texture.EncodeToPNG());
             return path;
         }
+        
+        public string GetBase64()
+        {
+            //string path = Application.persistentDataPath + "/" + name + "_" + DateTime.Now.ToString("MM-dd-yyyy-hh-mm") + ".png";
+            //File.WriteAllBytes(path, texture.EncodeToPNG());
+            byte[] bytes;
+
+            String b64;
+            bytes = texture.EncodeToJPG();
+            b64 = Convert.ToBase64String(bytes);
+            //return path;
+            return b64;
+        }
 
     }
 

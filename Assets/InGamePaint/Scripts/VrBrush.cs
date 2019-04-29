@@ -2,6 +2,7 @@
 using UnityEngine;
 using Valve.VR;
 using VRTK;
+using VRTK.UnityEventHelper;
 
 namespace InGamePaint
 {
@@ -67,6 +68,8 @@ namespace InGamePaint
             {
                 float pulseStrength = (1 - currentPaintableDistance / RayDistance) * maxPulseStrength;
                // GetComponent<VRTK_ControllerActions>().TriggerHapticPulse((ushort)pulseStrength);
+               //GetComponent<VRTK_InteractHaptics_UnityEvents.InteractHapticsEvent>().T
+               //GetComponent<VRTK_InteractHaptics>().strengthOnTouch((ushort)pulseStrength);
                 //BrushOpacity = buttonPressure;
                 if (lastPaintable == null)
                 {

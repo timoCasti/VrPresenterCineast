@@ -96,7 +96,7 @@ public class Displayal : MonoBehaviour
         // We use the HeadCollider for now because thats the trigger when "Driving" through the img
        
         
-        if (other.gameObject.name == "HeadCollider") {
+        if (other.gameObject.name == "HeadCollider"||other.gameObject.name=="Lefthand") {
             
                 StartCoroutine(WaitForRetrigger(3));
             

@@ -5,6 +5,7 @@ using CineastUnityInterface.CineastAPI;
 using DefaultNamespace;
 using DefaultNamespace.VREM;
 using DefaultNamespace.VREM.Model;
+using InGamePaint;
 using Unibas.DBIS.VREP;
 using Unibas.DBIS.VREP.Core;
 using Unibas.DBIS.VREP.World;
@@ -72,9 +73,7 @@ public class MyExhibitionBuilder : MonoBehaviour
 
     public static IEnumerator getMorelikeThisOne(int exhibitNumber)
     {
-
        
-        
         CineastApi myApi = CineastApi.FindObjectOfType<CineastApi>();
         Action<List<MultimediaObject>> handlernew =
             new Action<List<MultimediaObject>>(delegate(List<MultimediaObject> list) { });
@@ -100,10 +99,65 @@ public class MyExhibitionBuilder : MonoBehaviour
         
         triggerWait = false;
 
-       
-        
-     
         isFinished = true;
+
+    }
+
+    public IEnumerator getmyTestimg()
+    {
+        String url = "C:/Users/timoc/Desktop/BA/vitrivrdb/datak/meer.jpg";
+        var tex = new Texture2D(512, 512, TextureFormat.ARGB32, true);
+        var hasError = false;
+        using (var www = new WWW(url)) {
+            yield return www;
+            if (string.IsNullOrEmpty(www.error)) {
+                www.LoadImageIntoTexture(tex);
+                GetComponent<Renderer>().material.mainTexture = tex;
+                GC.Collect();
+
+            }
+        }
+
+       // imgData = "";
+
+    }
+
+    public static IEnumerator getMorelikeMyMasterpiece()
+    {
+        CineastApi myApi = CineastApi.FindObjectOfType<CineastApi>();
+        Action<List<MultimediaObject>> handlernew =new Action<List<MultimediaObject>>(delegate(List<MultimediaObject> list) { });
+        String imgData;
+        Paintable[] p=GameObject.FindObjectsOfType<Paintable>();
+        Debug.Log((p[0].name));
+        imgData=p[0].GetBase64();
+
+        
+        byte[] bytes;
+
+        String b64;
+       
+        //Debug.Log(imgData);
+        imgData = "data:image/jpeg;base64," + imgData; //png;base64,
+        Debug.Log(imgData);
+        Debug.Log(imgData.Length);
+        
+
+       // Debug.Log(imgData2.Length+ "vong 2");
+        myApi.RequestSimilarThanMasterpiece(QueryFactory.BuildGlobalcolorSimilarQuery(imgData),handlernew);
+        
+        imgData = null;
+        
+        yield return new WaitUntil(myApi.HasFinished);
+        
+        yield return similarIds = myApi.GetMoreLikeThisResultIds(5);
+
+        randomIds = similarIds;
+     
+        myexhibitionManager.GetRoomByIndex(0).Walls[0].WallData.exhibits = getExhibits(5, similarIds);
+        
+        myexhibitionManager.GetRoomByIndex(0).DeleteOldandUpdate();
+
+        
 
     }
 
@@ -218,7 +272,7 @@ public class MyExhibitionBuilder : MonoBehaviour
         re =new []{
             new Exhibit
             {
-                path = CineastUtils.GetImageUrlbyID(id[0]),
+                //path = CineastUtils.GetImageUrlbyID(id[0]),
                 name = "Masterpiece",
                 position = new Vector3(4, 1.5f, 1),
                 size = new Vector3(1.5f, 1.5f, 1.5f),

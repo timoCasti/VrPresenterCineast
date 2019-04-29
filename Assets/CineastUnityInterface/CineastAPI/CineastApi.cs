@@ -78,6 +78,12 @@ namespace CineastUnityInterface.CineastAPI
             StartCoroutine(ExecuteMultiQuery(query, ratio));
         }
 
+        public void RequestSimilarThanMasterpiece(SimilarQuery query, Action<List<MultimediaObject>> handler)
+        {
+            queryFinishedCallback = handler;
+            StartCoroutine(ExecuteQueryMoreLikeMasterpiece(query));
+        }
+
         private IEnumerator ExecuteMultiQuery(SimilarQuery query, CategoryRatio ratio)
         {
             finished = false;
@@ -265,8 +271,6 @@ namespace CineastUnityInterface.CineastAPI
             creates an List<String> randomIdlist with all existing Objectids
             selects 5
          */
-
-
         private IEnumerator ExecuteRandomId(int number)
         {
             finished = false;
@@ -331,10 +335,96 @@ namespace CineastUnityInterface.CineastAPI
             earlyBreak = !Parse(similarRequest.text, out similarResult);
             yield return similarResult;
             if (earlyBreak) yield break;
-            //Debug.Log(similarResult.results[0].content[0].key);
-            //Debug.Log(similarResult.results[0].content[0].value);
-            //Debug.Log(similarResult.results[0].content[1].value);
-            //Debug.Log(similarResult.results[0].content[2].value);
+            
+
+            // Check if empty
+            if (similarResult.IsEmpty()) {
+                earlyBreak = true;
+                yield break; // Stop and 
+            }
+
+            // === SEGMENTS ===
+            // segments
+            yield return segmentRequest =
+                CineastUtils.BuildSegmentRequest(CineastUtils.Configuration.FindSegmentsByIdUrl(),
+                    CineastUtils.ExtractIdArray(CineastUtils.ExtractContentObjects(similarResult)));
+
+            // parse response
+            earlyBreak = !Parse(segmentRequest.text, out segmentResult);
+            yield return segmentResult;
+            if (earlyBreak) yield break;
+
+
+            yield return objectRequest =
+                CineastUtils.BuildObjectsRequest(CineastUtils.Configuration.FindObjectsUrl(),
+                    CineastUtils.ExtractIdArray(segmentResult.content));
+
+            yield return objectsResult = JsonUtility.FromJson<ObjectsResult>(objectRequest.text);
+
+            //Debug.Log("ObjectRes:" + objectsResult.content[0].path);
+
+
+// new trsy
+            objectList = CineastUtils.Convert(objectsResult.content);
+            //Debug.Log("New Test 474" + objectList[0].id);
+
+
+            // merge results
+            var objects = CineastUtils.Convert(objectsResult.content);
+            foreach (var mmo in objects)
+                if (objectList.Contains(mmo))
+                    objectList.Find(o => o.Equals(mmo)).Merge(mmo);
+
+            //Debug.Log("Object id 487" + objectList[0].id);
+
+            results = new List<MultimediaObject>(objectList);
+
+            // === WRAPUP ===
+            foreach (var mmo in objectList) mmo.resultIndex = CineastUtils.GetIndexOf(mmo, similarResult) + 1;
+
+
+            // === SORT LIST ===
+            objectList.Sort(
+                Comparison);
+
+            List<MultimediaObject> transferList;
+            if (filterEngine != null)
+                transferList = filterEngine.ApplyFilters(objectList);
+            else
+                transferList = objectList;
+
+
+            //Debug.Log("Object id 513" + objectList[0].id);
+            //Debug.Log("Object id 514" + transferList[0].id);
+
+
+            // cleanup
+            finished = true;
+            if (queryFinishedCallback != null) queryFinishedCallback.Invoke(transferList);
+
+            yield return true;
+        }
+        
+        /*
+         *  Query For Masteroiece ( Draw picture)
+         */
+         private IEnumerator ExecuteQueryMoreLikeMasterpiece(SimilarQuery query)
+        {
+            // Since api is used several times it has to be set false on call
+            finished = false;
+
+
+            // === SIMILAR ===
+            // Initial SimilarQuery
+            yield return similarRequest =
+                CineastUtils.BuildSimilarRequest(CineastUtils.Configuration.FindSimilarSegmentsUrl(), query);
+
+
+            // Parse response
+            earlyBreak = !Parse(similarRequest.text, out similarResult);
+            yield return similarResult;
+            if (earlyBreak) yield break;
+            
 
             // Check if empty
             if (similarResult.IsEmpty()) {

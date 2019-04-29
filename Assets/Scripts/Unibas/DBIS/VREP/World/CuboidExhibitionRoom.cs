@@ -119,6 +119,7 @@ namespace Unibas.DBIS.VREP.World
         
         
         
+        
 
         /// <summary>
         ///     Returns the wall for the orientation.

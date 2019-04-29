@@ -32,6 +32,16 @@ namespace World
             //}
         }
 
+        public static GameObject GetCanvasPrefab()
+        {
+            var pref = Resources.Load("Prefabs/DisplayalCanvas", typeof(GameObject)) as GameObject;
+            if (pref == null) {
+                throw new Exception("Could not load Canvas as Resource");
+            }
+
+            return pref;
+        }
+
         public static GameObject GetPalettePrefab()
         {
             var prefab =Resources.Load("Prefabs/Palette", typeof(GameObject)) as GameObject;
