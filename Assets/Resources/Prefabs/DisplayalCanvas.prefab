@@ -319,7 +319,7 @@ BoxCollider:
   m_GameObject: {fileID: 1302269862261132}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 11.651288, y: 0.29812765, z: 11.618954}
   m_Center: {x: -0.005042553, y: -0.7, z: 0.003323555}
@@ -420,7 +420,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4716170255960452
 Transform:
   m_ObjectHideFlags: 0
@@ -591,7 +591,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4573243634688148
 Transform:
   m_ObjectHideFlags: 0
@@ -684,7 +684,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &224747469537501470
 RectTransform:
   m_ObjectHideFlags: 0
@@ -941,6 +941,7 @@ GameObject:
   - component: {fileID: 8611046832843117357}
   - component: {fileID: 6507731109715755793}
   - component: {fileID: 2708422425670124344}
+  - component: {fileID: 4287840846407114559}
   m_Layer: 0
   m_Name: MyCanvas
   m_TagString: Untagged
@@ -987,7 +988,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 744251901c3a6454386164d463059eca, type: 2}
+  - {fileID: 10302, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1016,8 +1017,26 @@ MeshCollider:
   m_GameObject: {fileID: 5164528397879115462}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 14
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &4287840846407114559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5164528397879115462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ed0bcc6c93a4dc49b97ebaae144e3a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resolutionX: 1024
+  resolutionY: 1024
+  backgroundColor: {r: 1, g: 1, b: 1, a: 1}
+  smudgeMultiplier: 0
+  minSmudgeStrength: 0
+  locked: 0

@@ -2,7 +2,6 @@
 using UnityEngine;
 using Valve.VR;
 using VRTK;
-using VRTK.UnityEventHelper;
 
 namespace InGamePaint
 {
@@ -40,15 +39,19 @@ namespace InGamePaint
 
             brushSize = 128;
 
+            Debug.Log("Bis do 1");
             //base.Start();
 
+            Debug.Log("Bis do 2");
             if (GetComponent<VRTK_ControllerEvents>() == null)
             {
                 Debug.LogError("VRTK_ControllerEvents_ListenerExample is required to be attached to a SteamVR Controller that has the VRTK_ControllerEvents script attached to it");
                 return;
             }
 
+            Debug.Log("Bis do 3");
             lineRenderer = gameObject.AddComponent<LineRenderer>();
+            Debug.Log("Created linerenderer?  " + lineRenderer.loop);
             lineRenderer.SetPositions(new Vector3[] { Vector3.zero, GetRay().direction * RayDistance });
             lineRenderer.startWidth = 0.05f;
             lineRenderer.endWidth = 0;
@@ -68,8 +71,6 @@ namespace InGamePaint
             {
                 float pulseStrength = (1 - currentPaintableDistance / RayDistance) * maxPulseStrength;
                // GetComponent<VRTK_ControllerActions>().TriggerHapticPulse((ushort)pulseStrength);
-               //GetComponent<VRTK_InteractHaptics_UnityEvents.InteractHapticsEvent>().T
-               //GetComponent<VRTK_InteractHaptics>().strengthOnTouch((ushort)pulseStrength);
                 //BrushOpacity = buttonPressure;
                 if (lastPaintable == null)
                 {
@@ -80,7 +81,7 @@ namespace InGamePaint
             if (currentClickable != null)
             {
                 ClickClickable();
-               // GetComponent<VRTK_ControllerActions>().TriggerHapticPulse((ushort)maxPulseStrength);
+             //   GetComponent<VRTK_ControllerActions>().TriggerHapticPulse((ushort)maxPulseStrength);
             }
 
         }
@@ -90,8 +91,11 @@ namespace InGamePaint
         /// </summary>
         override protected void ApplyBrushSettings()
         {
+            Debug.Log("Base:  " + base.color);
+            
             base.ApplyBrushSettings();
-        
+            //Debug.Log(lineRenderer.name);
+            Debug.Log(color);
             lineRenderer.material.color = color;
         }
 
@@ -99,7 +103,7 @@ namespace InGamePaint
         {
             get
             {
-                return 1f;
+                return 0.2f;
             }
         }
 

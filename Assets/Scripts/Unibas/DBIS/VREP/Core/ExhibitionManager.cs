@@ -96,10 +96,10 @@ namespace Unibas.DBIS.VREP.Core
                var canv = exhibitionRoom.Walls[1].Displayals[0];
                var Canvas = canv.gameObject.transform.Find("MyCanvas").gameObject;
                //Debug.Log(Canvas.name);
-               Canvas.gameObject.AddComponent<Paintable>();
-               Canvas.gameObject.AddComponent<VrMoveable>();
+               //Canvas.gameObject.AddComponent<Paintable>();
+               //Canvas.gameObject.AddComponent<VrMoveable>();
 
-               Canvas.gameObject.GetComponent<VrMoveable>().enabled = true;
+               //Canvas.gameObject.GetComponent<VrMoveable>().enabled = true;
                
                canv.gameObject.GetComponent<BoxCollider>().isTrigger = false;
                

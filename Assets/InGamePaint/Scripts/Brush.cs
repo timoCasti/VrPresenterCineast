@@ -129,7 +129,9 @@ namespace InGamePaint
                 shapeDisplayInitScale = shapeDisplay.transform.localScale;
             }
 
+            Debug.Log("Bis do 4");
             ApplyBrushSettings();
+            Debug.Log("Bis do 4.2");
         }
 
         /// <summary>
@@ -137,8 +139,10 @@ namespace InGamePaint
         /// </summary>
         virtual protected void ApplyBrushSettings()
         {
+            Debug.Log("Bis do 5");
             UpdateBrushTextureToSize();
 
+            Debug.Log("Bis do 6");
             if (colorDisplayRenderer != null)
             {
                 Texture2D tex = new Texture2D(1, 1);
@@ -152,6 +156,7 @@ namespace InGamePaint
                 shapeDisplayRenderer.material.mainTexture = brushAlphaOriginal;
                 shapeDisplayRenderer.transform.localScale = brushSize * shapeDisplayInitScale / 128;
             }
+            Debug.Log("Bis do 7");
         }
 
         /// <summary>
@@ -160,12 +165,14 @@ namespace InGamePaint
         protected void UpdateBrushTextureToSize()
         {
             // Clone and scale texture
+            Debug.Log("Bis do 8.1");
             if (brushTip.width != DynamicBrushSize)
             {
                 brushTip = new Texture2D(brushAlphaOriginal.width, brushAlphaOriginal.height);
                 brushTip.SetPixels(brushAlphaOriginal.GetPixels());
                 TextureScale.Bilinear(brushTip, DynamicBrushSize, DynamicBrushSize);
             }
+            Debug.Log("Bis do 8.2");
         }
 
         /// <summary>
