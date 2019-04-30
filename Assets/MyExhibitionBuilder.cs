@@ -26,15 +26,12 @@ public class MyExhibitionBuilder : MonoBehaviour
     private static List<String> similarIds;
     
     // Triggerlist
-    private List<Boolean> triggerList;
-    
-    public static Boolean triggerWait;
 
     private static Boolean isFinished;
 
-    public static Displayal dis;
-
     public static float TimeForTrigger;
+
+    public static Boolean Masterpiece;
     
 
    
@@ -96,8 +93,6 @@ public class MyExhibitionBuilder : MonoBehaviour
         myexhibitionManager.GetRoomByIndex(0).Walls[0].WallData.exhibits = getExhibits(5, similarIds);
         
         myexhibitionManager.GetRoomByIndex(0).DeleteOldandUpdate();
-        
-        triggerWait = false;
 
         isFinished = true;
 
@@ -122,35 +117,33 @@ public class MyExhibitionBuilder : MonoBehaviour
 
     }
 
+    public static void resetMasterpiece()
+    {
+        myexhibitionManager.GetRoomByIndex(0).DeleteMasterpieceAndUpdate();
+    }
+
     public static IEnumerator getMorelikeMyMasterpiece()
     {
         CineastApi myApi = CineastApi.FindObjectOfType<CineastApi>();
         Action<List<MultimediaObject>> handlernew =new Action<List<MultimediaObject>>(delegate(List<MultimediaObject> list) { });
         String imgData;
         Paintable[] p=GameObject.FindObjectsOfType<Paintable>();
-        Debug.Log((p[0].name));
+
         imgData=p[0].GetBase64();
-
-        
         byte[] bytes;
-
         String b64;
        
-        //Debug.Log(imgData);
         imgData = "data:image/jpeg;base64," + imgData; //png;base64,
-        Debug.Log(imgData);
-        Debug.Log(imgData.Length);
-        
 
-       // Debug.Log(imgData2.Length+ "vong 2");
-        myApi.RequestSimilarThanMasterpiece(QueryFactory.BuildGlobalcolorSimilarQuery(imgData),handlernew);
+
+        String[] categories = {"globalcolor", "localcolor", "edge"};
+        //myApi.RequestSimilarThanMasterpiece(QueryFactory.BuildGlobalcolorSimilarQuery(imgData),handlernew)};
+        myApi.RequestSimilarThanMasterpiece(QueryFactory.BuildMultiCategoryQuery(categories,imgData),handlernew);
         
-        imgData = null;
+        //imgData = null;
         
         yield return new WaitUntil(myApi.HasFinished);
-        
         yield return similarIds = myApi.GetMoreLikeThisResultIds(5);
-
         randomIds = similarIds;
      
         myexhibitionManager.GetRoomByIndex(0).Walls[0].WallData.exhibits = getExhibits(5, similarIds);
@@ -175,8 +168,6 @@ public class MyExhibitionBuilder : MonoBehaviour
   
 
         createExhibition(numb);
-
-        triggerWait = true;
 
         TimeForTrigger = Time.time;
 

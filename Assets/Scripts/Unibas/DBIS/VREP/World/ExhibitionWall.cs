@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DefaultNamespace;
 using InGamePaint;
 using Unibas.DBIS.DynamicModelling.Models;
@@ -7,10 +6,10 @@ using UnityEngine;
 
 namespace World
 {
-  /// <summary>
-  ///     A representation of a wall, attachable to a gameobject.
-  /// </summary>
-  public class ExhibitionWall : MonoBehaviour
+    /// <summary>
+    ///     A representation of a wall, attachable to a gameobject.
+    /// </summary>
+    public class ExhibitionWall : MonoBehaviour
     {
         public List<Displayal> Displayals = new List<Displayal>();
         public Displayal timeDisplayal;
@@ -34,15 +33,14 @@ namespace World
         {
             Displayals.ForEach(d => d.RestorePosition());
         }
-        
+
         // Method to delete Displayals to replace them.
 
         public void resetDisplayals()
         {
-
             // Eventuell sollte man Anchors auch löschen
 
-           
+
             int size = Displayals.Count;
             GameObject del;
 
@@ -53,10 +51,6 @@ namespace World
                 del = GameObject.Find("Anchor (" + i + ")");
                 GameObject.Destroy(del);
             }
-            
-           
-       
-
         }
 
         public void resetMasterpiece()
@@ -67,30 +61,18 @@ namespace World
             GameObject.Destroy(del);
             del = GameObject.Find("Anchor (1000)");
             GameObject.Destroy(del);
-            
-        }
-        
-        
-        
-
-        public IEnumerator WaitForTrigger()
-        {
-            yield return new WaitForSeconds(3);
-            MyExhibitionBuilder.triggerWait = true;
         }
 
-        
-        
 
         public void AttachExhibits()
         {
-           
             // TODO Make displayal configurable
             var prefab = ObjectFactory.GetDisplayalPrefab();
-            
+
             foreach (var e in WallData.exhibits)
             {
-                if (e.name != "Masterpiece") {
+                if (e.name != "Masterpiece")
+                {
                     var displayal = Instantiate(prefab);
                     displayal.name = "Displayal (" + e.name + ")";
                     displayal.transform.parent = Anchor.transform;
@@ -100,17 +82,13 @@ namespace World
                     var rot = Quaternion.Euler(90, 0, 180);
                     displayal.transform.localRotation = rot; // Because prefab is messed up
 
-                  
-                    
+
                     var disp = displayal.gameObject.GetComponent<Displayal>();
                     disp.SetExhibitModel(e);
                     disp.OriginalPosition = pos;
                     disp.OriginalRotation = rot;
-                
-                    //var can=displayal.transform.Find("MyCanvas");
-                
-                    //Debug.Log("My canvas position:  " + can.name);
-                
+
+
                     // Make the Boxcollider trigger in Displayal
                     disp.GetComponent<BoxCollider>().isTrigger = true;
                     Displayals.Add(disp);
@@ -126,35 +104,41 @@ namespace World
                         var closenessDetector = displayal.AddComponent<ClosenessDetector>();
                         closenessDetector.url = e.audio;
                     }
-                    
-                    
-                    
-                    
-                    
+                    //Debug.Log(GameObject.Find("Displayal 1000").name+ " 1");
                 }
-                // Canvas only gets created if there is no Canvas already 
-                else if(  GameObject.Find("Displayal (1000)")==false){
-                    //GameObject game;
-                    //GameObject.Find("Display (1000)");
-                    var prefab2 = ObjectFactory.GetCanvasPrefab();
-                    var displayalCanvas = Instantiate(prefab2);
-                    displayalCanvas.name = "Displayal (" + e.name + ")";
-                    displayalCanvas.transform.parent = Anchor.transform;
-                    var pos = new Vector3(e.position.x, e.position.y, -ExhibitionBuildingSettings.Instance.WallOffset);
-                    displayalCanvas.transform.localPosition = pos;
-                    //displayal.transform.rotation = Quaternion.Euler(ObjectFactory.CalculateRotation(WallData.direction));
-                    var rot = Quaternion.Euler(90, 0, 180);
-                    displayalCanvas.transform.localRotation = rot; // Because prefab is messed up
+                else
+                {
+                    // Canvas only gets created if there is no Canvas already 
+                    //if (GameObject.Find("Displayal (1000)") == null)
+                    if(MyExhibitionBuilder.Masterpiece==false)
+                    {
+                        Debug.Log("Didnt find Displayal 1000 ");
+                        //GameObject game;
+                        //GameObject.Find("Display (1000)");
+                        var prefab2 = ObjectFactory.GetCanvasPrefab();
+                        var displayalCanvas = Instantiate(prefab2);
+                        displayalCanvas.name = "Displayal (" + e.name + ")";
+                        displayalCanvas.transform.parent = Anchor.transform;
+                        var pos = new Vector3(e.position.x, e.position.y,
+                            -ExhibitionBuildingSettings.Instance.WallOffset);
+                        displayalCanvas.transform.localPosition = pos;
+                        //displayal.transform.rotation = Quaternion.Euler(ObjectFactory.CalculateRotation(WallData.direction));
+                        var rot = Quaternion.Euler(90, 0, 180);
+                        displayalCanvas.transform.localRotation = rot; // Because prefab is messed up
 
-                    
-                    var disp = displayalCanvas.gameObject.GetComponent<Displayal>();
-                    disp.SetExhibitModel(e);
-                    disp.OriginalPosition = pos;
-                    disp.OriginalRotation = rot;
 
-                    displayalCanvas.transform.localScale = ScalingUtility.convertMeters2PlaneScaleSize(e.size.x, e.size.y);
+                        var disp = displayalCanvas.gameObject.GetComponent<Displayal>();
+                        disp.SetExhibitModel(e);
+                        disp.OriginalPosition = pos;
+                        disp.OriginalRotation = rot;
 
-                    Displayals.Add(disp);
+                        displayalCanvas.transform.localScale =
+                            ScalingUtility.convertMeters2PlaneScaleSize(e.size.x, e.size.y);
+
+                        Displayals.Add(disp);
+                        MyExhibitionBuilder.Masterpiece = true;
+
+                    }
                 }
 
                 //Debug.Log("NAMES:  " + displayal.name);
@@ -164,15 +148,11 @@ namespace World
                 }*/
 
 
-                
-
                 //displayal.transform.Find("Masterpiece").gameObject.AddComponent<Paintable>();
 
                 /*if(!VREPController.Instance.Settings.SpotsEnabled || !e.light){	
                   displayal.transform.Find("Directional light").gameObject.SetActive(false);
                 }*/
-
-    
             }
         }
 

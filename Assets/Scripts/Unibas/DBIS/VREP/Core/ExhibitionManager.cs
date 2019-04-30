@@ -89,19 +89,22 @@ namespace Unibas.DBIS.VREP.Core
                // try add paintable canvas here
 
                // name= Displayal (1000)
-               //var Canv = exhibitionRoom.Walls[1].Displayals.Find(displayal => displayal.name.Equals("Masterpiece"));
+               
+               //var Canv = exhibitionRoom.Walls[1].Displayals.Find(displayal => displayal.name.Equals("Masterpiece")); do
+               
                //Debug.Log(exhibitionRoom.Walls[1].Displayals[0].name);
                //Debug.Log("found canvas" + Canv.name);
                
-               var canv = exhibitionRoom.Walls[1].Displayals[0];
-               var Canvas = canv.gameObject.transform.Find("MyCanvas").gameObject;
+               //var canv = exhibitionRoom.Walls[1].Displayals[0];                    do
+               //var Canvas = canv.gameObject.transform.Find("MyCanvas").gameObject; do
                //Debug.Log(Canvas.name);
                //Canvas.gameObject.AddComponent<Paintable>();
                //Canvas.gameObject.AddComponent<VrMoveable>();
 
                //Canvas.gameObject.GetComponent<VrMoveable>().enabled = true;
                
-               canv.gameObject.GetComponent<BoxCollider>().isTrigger = false;
+               
+               //canv.gameObject.GetComponent<BoxCollider>().isTrigger = false;   do
                
                // Add Palette
                var pal = ObjectFactory.GetPalettePrefab();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DefaultNamespace;
 using Unibas.DBIS.DynamicModelling.Models;
@@ -114,6 +115,16 @@ namespace Unibas.DBIS.VREP.World
         {
             Walls.ForEach(ew=> ew.resetDisplayals());
             Walls.ForEach(ew => ew.AttachExhibits());
+        }
+
+        public void DeleteMasterpieceAndUpdate()
+        {
+            MyExhibitionBuilder.Masterpiece = false;
+            Walls.ForEach(ew=> ew.resetMasterpiece());
+            Walls.ForEach(ew=> ew.resetDisplayals());
+            Walls.ForEach(ew => ew.AttachExhibits());
+            
+            
         }
         
         
