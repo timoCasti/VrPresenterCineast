@@ -80,9 +80,9 @@ namespace Unibas.DBIS.VREP.Core
                 logo.transform.SetParent(exhibitionRoom.transform, false);
                 //logo.transform.localPosition = new Vector3(-1.493f, room.size.y-.01f, -0.642f); // manually found values
                 logo.transform.localPosition =
-                    new Vector3(-1.493f, room.size.y - .01f, 3.35f); // manually found values
-                logo.transform.localRotation = Quaternion.Euler(new Vector3(90, 180));
-                logo.transform.localScale = Vector3.one * 1000;
+                    new Vector3(-3.99f, 2.4f, -1.6f); // manually found values
+                logo.transform.localRotation = Quaternion.Euler(new Vector3(0, 90,0));
+                logo.transform.localScale = Vector3.one * 10000;
                 //}
 
                 
