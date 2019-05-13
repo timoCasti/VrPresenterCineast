@@ -74,18 +74,15 @@ public class MyExhibitionBuilder : MonoBehaviour
         CineastApi myApi = CineastApi.FindObjectOfType<CineastApi>();
         Action<List<MultimediaObject>> handlernew =
             new Action<List<MultimediaObject>>(delegate(List<MultimediaObject> list) { });
-     
-        
+
+
+        String[] categories = {"globalcolor", "localcolor", "edge"};
         // There should be searched for segmentIds instead ob fixed Objectids _1 hardcoding unnecessary
-        myApi.RequestMoreLikeThisAndThen(QueryFactory.buildMoreLikeThisQuery(randomIds[exhibitNumber]+"_1"),handlernew); 
+        myApi.RequestMoreLikeThisAndThen(QueryFactory.buildMoreLikeThisQuery(categories,randomIds[exhibitNumber]+"_1"),handlernew); 
         
         yield return new WaitUntil(myApi.HasFinished);
         
-       
-        
-        // has finished doesnt work since api is called severaltimes
-        //yield return new WaitForSeconds(2.5f);
-        
+               
         similarIds = myApi.GetMoreLikeThisResultIds(5);
 
         randomIds = similarIds;
@@ -113,8 +110,6 @@ public class MyExhibitionBuilder : MonoBehaviour
             }
         }
 
-       // imgData = "";
-
     }
 
     public static void resetMasterpiece()
@@ -136,7 +131,9 @@ public class MyExhibitionBuilder : MonoBehaviour
         imgData = "data:image/jpeg;base64," + imgData; //png;base64,
 
 
-        String[] categories = {"globalcolor", "localcolor", "edge"};
+        String[] categories = {"globalcolor", "localcolor"};
+        //String[] categories = {"globalcolor", "localcolor", "edge"};
+        
         //myApi.RequestSimilarThanMasterpiece(QueryFactory.BuildGlobalcolorSimilarQuery(imgData),handlernew)};
         myApi.RequestSimilarThanMasterpiece(QueryFactory.BuildMultiCategoryQuery(categories,imgData),handlernew);
         

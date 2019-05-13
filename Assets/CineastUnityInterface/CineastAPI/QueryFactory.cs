@@ -101,9 +101,11 @@ namespace CineastUnityInterface.CineastAPI
         }
 
         // More like this qurey Factorypart
-        public static MoreLikeThisQuery buildMoreLikeThisQuery(string id)
+        public static MoreLikeThisQuery buildMoreLikeThisQuery(string[] categories,string id)
         {
-            var to = BuildGlobalcolorTermForID(id);
+            var to = new TermsObject(TermsObject.ID_TYPE, categories);
+            //var to = BuildGlobalcolorTermForID(id);
+            
             var tc = new TermContainer(new[] {to});
             return new MoreLikeThisQuery(new[] {tc});
         }
