@@ -78,7 +78,7 @@ public class MyExhibitionBuilder : MonoBehaviour
 
         String[] categories = {"globalcolor", "localcolor", "edge"};
         // There should be searched for segmentIds instead ob fixed Objectids _1 hardcoding unnecessary
-        myApi.RequestMoreLikeThisAndThen(QueryFactory.buildMoreLikeThisQuery(categories,randomIds[exhibitNumber]+"_1"),handlernew); 
+        myApi.RequestMoreLikeThisAndThen(QueryFactory.buildMoreLikeThisQuery(categories, randomIds[exhibitNumber]+"_1"),handlernew); 
         
         yield return new WaitUntil(myApi.HasFinished);
         

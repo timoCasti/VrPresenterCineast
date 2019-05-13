@@ -105,7 +105,7 @@ namespace CineastUnityInterface.CineastAPI
         {
             var to = new TermsObject(TermsObject.ID_TYPE, categories);
             //var to = BuildGlobalcolorTermForID(id);
-            
+            to.data = id;
             var tc = new TermContainer(new[] {to});
             return new MoreLikeThisQuery(new[] {tc});
         }

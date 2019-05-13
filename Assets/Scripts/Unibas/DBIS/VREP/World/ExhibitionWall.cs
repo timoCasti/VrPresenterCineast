@@ -112,7 +112,7 @@ namespace World
                     //if (GameObject.Find("Displayal (1000)") == null)
                     if(MyExhibitionBuilder.Masterpiece==false)
                     {
-                        Debug.Log("Didnt find Displayal 1000 ");
+                        //Debug.Log("Didnt find Displayal 1000 ");
                         //GameObject game;
                         //GameObject.Find("Display (1000)");
                         var prefab2 = ObjectFactory.GetCanvasPrefab();
