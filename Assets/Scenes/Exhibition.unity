@@ -2829,7 +2829,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brushTip: {fileID: 0}
-  opacityFade: 0.1
+  opacityFade: 0
   smudgeStrength: 0.1
   brushSpacing: 0.5
   brushSize: 192
