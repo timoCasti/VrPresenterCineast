@@ -285,7 +285,6 @@ namespace CineastUnityInterface.CineastAPI
 
             yield return randomIdResult = CineastUtils.BuildRandomRequest(CineastUtils.Configuration.GetRandomIds());
 
-            //Debug.Log(randid.text);
             var resultString = randomIdResult.text;
 
             // fix Json manually
@@ -450,12 +449,9 @@ namespace CineastUnityInterface.CineastAPI
 
             yield return objectsResult = JsonUtility.FromJson<ObjectsResult>(objectRequest.text);
 
-            //Debug.Log("ObjectRes:" + objectsResult.content[0].path);
 
 
-// new trsy
             objectList = CineastUtils.Convert(objectsResult.content);
-            //Debug.Log("New Test 474" + objectList[0].id);
 
 
             // merge results
@@ -464,7 +460,6 @@ namespace CineastUnityInterface.CineastAPI
                 if (objectList.Contains(mmo))
                     objectList.Find(o => o.Equals(mmo)).Merge(mmo);
 
-            //Debug.Log("Object id 487" + objectList[0].id);
 
             results = new List<MultimediaObject>(objectList);
 
@@ -481,10 +476,6 @@ namespace CineastUnityInterface.CineastAPI
                 transferList = filterEngine.ApplyFilters(objectList);
             else
                 transferList = objectList;
-
-
-            //Debug.Log("Object id 513" + objectList[0].id);
-            //Debug.Log("Object id 514" + transferList[0].id);
 
 
             // cleanup

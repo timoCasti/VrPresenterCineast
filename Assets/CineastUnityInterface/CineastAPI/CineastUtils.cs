@@ -147,9 +147,7 @@ namespace CineastUnityInterface.CineastAPI
         {
             var headers = new Hashtable();
             headers.Add("Content-Type", "application/json");
-            //Debug.Log("Target URL: " + url + "\nPost data:\n" + "Keine");
-            //byte[] postData = Encoding.ASCII.GetBytes(json.ToCharArray());
-            return new WWW(url); //,postData);
+            return new WWW(url); 
         }
 
 
@@ -172,17 +170,17 @@ namespace CineastUnityInterface.CineastAPI
             return GenerateJSONPostRequest(url, JsonUtility.ToJson(sq));
         }
 
-        // new for more like this query
+        // for more like this query
 
         public static WWW BuildMoreLikeThisRequest(string url, MoreLikeThisQuery query)
         {
             return GenerateJSONPostRequest(url, JsonUtility.ToJson(query));
         }
 
-        // new for Rondom id
-        public static WWW BuildRandomRequest(string url) //, GetRandomIds query)
+        // Creates WWW object for Rondom ids
+        public static WWW BuildRandomRequest(string url) //, GetRandomIds query
         {
-            return GenerateJSONGetRequest(url); //, JsonUtility.ToJson(query));
+            return GenerateJSONGetRequest(url); 
         }
 
 
@@ -264,7 +262,7 @@ namespace CineastUnityInterface.CineastAPI
             return GenerateJSONPostRequest(url, JsonUtility.ToJson(query));
         }
 
-        // new Method for Image retrieval over objectid
+        //  Method for Image retrieval over objectid
         public static string GetImageUrlbyID(string id)
         {
             return Configuration.cineastHost + "/api/v1/get/objects/" + id;

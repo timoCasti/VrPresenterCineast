@@ -38,7 +38,6 @@ namespace World
 
         public void resetDisplayals()
         {
-            // Eventuell sollte man Anchors auch löschen
 
 
             int size = Displayals.Count;
@@ -78,7 +77,6 @@ namespace World
                     displayal.transform.parent = Anchor.transform;
                     var pos = new Vector3(e.position.x, e.position.y, -ExhibitionBuildingSettings.Instance.WallOffset);
                     displayal.transform.localPosition = pos;
-                    //displayal.transform.rotation = Quaternion.Euler(ObjectFactory.CalculateRotation(WallData.direction));
                     var rot = Quaternion.Euler(90, 0, 180);
                     displayal.transform.localRotation = rot; // Because prefab is messed up
 
@@ -94,7 +92,6 @@ namespace World
                     Displayals.Add(disp);
 
                     var image = displayal.transform.Find("Plane").gameObject.AddComponent<ImageLoader>(); // Displayal
-                    //ImageLoader image = displayal.AddComponent<ImageLoader>();// ImageDisplayPlane
                     image.ReloadImage(e.GetURLEncodedPath());
                     displayal.transform.localScale = ScalingUtility.convertMeters2PlaneScaleSize(e.size.x, e.size.y);
 
@@ -104,17 +101,12 @@ namespace World
                         var closenessDetector = displayal.AddComponent<ClosenessDetector>();
                         closenessDetector.url = e.audio;
                     }
-                    //Debug.Log(GameObject.Find("Displayal 1000").name+ " 1");
                 }
                 else
                 {
                     // Canvas only gets created if there is no Canvas already 
-                    //if (GameObject.Find("Displayal (1000)") == null)
                     if(MyExhibitionBuilder.Masterpiece==false)
                     {
-                        //Debug.Log("Didnt find Displayal 1000 ");
-                        //GameObject game;
-                        //GameObject.Find("Display (1000)");
                         var prefab2 = ObjectFactory.GetCanvasPrefab();
                         var displayalCanvas = Instantiate(prefab2);
                         displayalCanvas.name = "Displayal (" + e.name + ")";
@@ -122,7 +114,6 @@ namespace World
                         var pos = new Vector3(e.position.x, e.position.y,
                             -ExhibitionBuildingSettings.Instance.WallOffset);
                         displayalCanvas.transform.localPosition = pos;
-                        //displayal.transform.rotation = Quaternion.Euler(ObjectFactory.CalculateRotation(WallData.direction));
                         var rot = Quaternion.Euler(90, 0, 180);
                         displayalCanvas.transform.localRotation = rot; // Because prefab is messed up
 
@@ -141,18 +132,7 @@ namespace World
                     }
                 }
 
-                //Debug.Log("NAMES:  " + displayal.name);
-                /*if (!displayal.name.Equals("Displayal (Masterpiece)")) {
-                    Destroy(displayal.transform.Find("MyCanvas").gameObject);
-                    //Debug.Log("I GOT DESTROYED");
-                }*/
-
-
-                //displayal.transform.Find("Masterpiece").gameObject.AddComponent<Paintable>();
-
-                /*if(!VREPController.Instance.Settings.SpotsEnabled || !e.light){	
-                  displayal.transform.Find("Directional light").gameObject.SetActive(false);
-                }*/
+           
             }
         }
 

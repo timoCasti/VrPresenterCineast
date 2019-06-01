@@ -72,40 +72,17 @@ namespace Unibas.DBIS.VREP.Core
                 var exhibitionRoom = roomGameObject.GetComponent<CuboidExhibitionRoom>();
                 _rooms.Add(exhibitionRoom);
 
-                //if (VREPController.Instance.Settings.CeilingLogoEnabled)
-                //{
+               
+                // Add unibas logo
                 var pref = Resources.Load<GameObject>("Objects/unibas");
                 var logo = Object.Instantiate(pref);
                 logo.name = "UnibasLogo";
                 logo.transform.SetParent(exhibitionRoom.transform, false);
-                //logo.transform.localPosition = new Vector3(-1.493f, room.size.y-.01f, -0.642f); // manually found values
                 logo.transform.localPosition =
                     new Vector3(-3.99f, 2.4f, -1.6f); // manually found values
                 logo.transform.localRotation = Quaternion.Euler(new Vector3(0, 90,0));
                 logo.transform.localScale = Vector3.one * 10000;
-                //}
-
-                
-               // try add paintable canvas here
-
-               // name= Displayal (1000)
-               
-               //var Canv = exhibitionRoom.Walls[1].Displayals.Find(displayal => displayal.name.Equals("Masterpiece")); do
-               
-               //Debug.Log(exhibitionRoom.Walls[1].Displayals[0].name);
-               //Debug.Log("found canvas" + Canv.name);
-               
-               //var canv = exhibitionRoom.Walls[1].Displayals[0];                    do
-               //var Canvas = canv.gameObject.transform.Find("MyCanvas").gameObject; do
-               //Debug.Log(Canvas.name);
-               //Canvas.gameObject.AddComponent<Paintable>();
-               //Canvas.gameObject.AddComponent<VrMoveable>();
-
-               //Canvas.gameObject.GetComponent<VrMoveable>().enabled = true;
-               
-               
-               //canv.gameObject.GetComponent<BoxCollider>().isTrigger = false;   do
-               
+             
                // Add Palette
                var pal = ObjectFactory.GetPalettePrefab();
                var palette =Instantiate(pal);
@@ -122,16 +99,6 @@ namespace Unibas.DBIS.VREP.Core
             foreach (var room in _rooms) CreateAndAttachTeleporters(room);
         }
         
-        // new Method to update images at the wall
-
-        public void UpdateRoom(Room roomUpdate)
-        {
-            
-            
-        }
-        
-
-
         private void CreateAndAttachTeleporters(CuboidExhibitionRoom room)
         {
             var index = GetRoomIndex(room.RoomData);
@@ -168,15 +135,6 @@ namespace Unibas.DBIS.VREP.Core
                 nextTpBtn.OnTeleportEnd = next.OnRoomEnter;
             }
 
-
-            /*if (VREPController.Instance.Settings.StartInLobby)
-            {
-                var lobbyTpBtn = SteamVRTeleportButton.Create(room.gameObject, new Vector3(0, 0, .2f),
-                    VREPController.Instance.LobbySpawn,
-                    model,
-                    "Lobby");
-                lobbyTpBtn.OnTeleportStart = room.OnRoomLeave;
-            }*/
         }
     }
 }
